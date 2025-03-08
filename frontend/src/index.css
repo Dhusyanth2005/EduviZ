@@ -1,0 +1,24 @@
+/* Reset default browser styles and set full height */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden; /* Prevent scrollbars if content overflows */
+}
+
+/* Ensure the #root div (where React mounts) takes full space */
+#root {
+  height: 100%;
+  width: 100%;
+}
+
+/* Optional: Set a default background color to match your app's theme */
+body {
+  background-color: #f0f0f0; /* Default light mode background */
+}
+
+/* Dynamic background based on the app's theme */
+.app.dark body {
+  background-color: #1a1a1a; /* Dark mode background */
+}
