@@ -4,12 +4,13 @@ html, body {
   padding: 0;
   height: 100%;
   width: 100%;
-  overflow: hidden; /* Prevent scrollbars if content overflows */
+  overflow-x: hidden; /* Prevent horizontal scroll */
+  overflow-y: auto; /* Allow vertical scrolling */
 }
 
 /* Ensure the #root div (where React mounts) takes full space */
 #root {
-  height: 100%;
+  min-height: 100%; /* Changed to min-height to allow expansion */
   width: 100%;
 }
 

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import "@google/model-viewer";
-import '../App.css';
+import '../styles/App.css';
 
 function ModelViewer({ modelSrc, isPlaying, showDetailView, onLoad }) {
   const modelViewerRef = useRef(null);
@@ -24,6 +24,9 @@ function ModelViewer({ modelSrc, isPlaying, showDetailView, onLoad }) {
       camera-controls
       auto-rotate={showDetailView} // Auto-rotate only in detail view
       className="model-viewer"
+      shadow-intensity="0.8" // Enable shadows with intensity
+      shadow-softness="0.5" // Softer shadow edges
+      
     />
   );
 }
