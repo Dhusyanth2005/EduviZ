@@ -3,25 +3,34 @@ import ModelViewer from "../components/ModelViewer";
 import ModelDescription from "../components/ModelDescription";
 import { FaSun, FaMoon } from 'react-icons/fa';
 import '../styles/App.css';
+import { bicycleData } from '../bicycleData';
 
-export default function App() {
+export default function ModelPage() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [showDetailView, setShowDetailView] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [modelViewerRef, setModelViewerRef] = useState(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [modelSrc, setModelSrc] = useState(null);
-  const [isDismantleMode, setIsDismantleMode] = useState(true); // New state to track button mode
+  const [isDismantleMode, setIsDismantleMode] = useState(true);
+  const [selectedPart, setSelectedPart] = useState(null);
 
-  const parts = ["Part 1", "Part 2", "Part 3", "Part 4", "Part 5"];
+  const parts = Object.keys(bicycleData.parts);
 
   useEffect(() => {
-    const fileId = '67d2b17a89aec47829ef321a';
-    const url = `http://localhost:3001/model/${fileId}`;
+    const url = `http://localhost:3001/model/${bicycleData.fullviewModel}`;
     setModelSrc(url);
   }, []);
 
-  // Handle toggle between dismantle and assemble
+  const handlePartSelect = (part) => {
+    const partFileId = bicycleData.parts[part].modelId;
+    const url = `http://localhost:3001/model/${partFileId}`;
+    setModelSrc(url);
+    setSelectedPart(part);
+    setShowDetailView(true);
+    setIsDrawerOpen(false);
+  };
+
   const handleToggleAnimation = () => {
     if (modelViewerRef && modelViewerRef.current) {
       const animations = modelViewerRef.current.availableAnimations;
@@ -29,19 +38,22 @@ export default function App() {
         modelViewerRef.current.animationName = animations[0];
         modelViewerRef.current.play();
         setIsPlaying(true);
-        
-        // Stop animation after 3 seconds and toggle mode
         setTimeout(() => {
           modelViewerRef.current.pause();
           setIsPlaying(false);
-          setIsDismantleMode(!isDismantleMode); // Switch between dismantle and assemble
-        }, 3750);
+          setIsDismantleMode(!isDismantleMode);
+        }, 2500);
       }
     }
   };
 
-  const handleDetailViewClick = () => setShowDetailView(true);
-  const handleBackClick = () => setShowDetailView(false);
+  const handleBackClick = () => {
+    setShowDetailView(false);
+    setSelectedPart(null);
+    const url = `http://localhost:3001/model/${bicycleData.fullviewModel}`;
+    setModelSrc(url);
+  };
+
   const toggleDrawer = () => setIsDrawerOpen(!isDrawerOpen);
   const toggleTheme = () => setIsDarkMode(!isDarkMode);
   const handleModelViewerLoad = (ref) => setModelViewerRef(ref);
@@ -65,12 +77,10 @@ export default function App() {
             {parts.map((part) => (
               <li
                 key={part}
-                onClick={() => {
-                  setShowDetailView(true);
-                  setIsDrawerOpen(false);
-                }}
+                onClick={() => handlePartSelect(part)}
+                className={selectedPart === part ? 'selected' : ''}
               >
-                {part}
+                {bicycleData.parts[part].name}
               </li>
             ))}
           </ul>
@@ -122,7 +132,7 @@ export default function App() {
             )}
           </div>
           <div className="description-container">
-            <ModelDescription />
+            <ModelDescription selectedPart={selectedPart} />
           </div>
         </div>
       )}
