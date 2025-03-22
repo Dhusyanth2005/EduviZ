@@ -1,19 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { bicycleData } from '../bicycleData';
-import '../styles/App.css';
+import { bicycleData } from '../../bicycleData';
+import styles from './ModelDescription.module.css';
 import axios from 'axios';
 
-function ModelDescription({ selectedPart }) {
+function ModelDescription({ selectedPart,isDarkMode }) {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [message, setMessage] = useState('');
   const [chat, setChat] = useState([]);
 
-  // Preload data whenever selectedPart changes and reset chat
   useEffect(() => {
     if (selectedPart) {
-      // Reset chat history on new preload
       setChat([]);
-
       const partInfo = bicycleData.parts[selectedPart] || {};
       const preloadData = async () => {
         try {
@@ -24,8 +21,6 @@ function ModelDescription({ selectedPart }) {
               materials: partInfo.materials || 'No material info available.',
             },
           });
-
-          // Add greeting message only if chat is open
           if (isChatOpen) {
             setChat([
               {
@@ -42,7 +37,6 @@ function ModelDescription({ selectedPart }) {
     }
   }, [selectedPart]);
 
-  // Add greeting message when chat opens for the first time
   useEffect(() => {
     if (isChatOpen && chat.length === 0 && selectedPart) {
       setChat([
@@ -89,27 +83,16 @@ function ModelDescription({ selectedPart }) {
 
   const toggleChat = () => setIsChatOpen(!isChatOpen);
 
-  // Conditional rendering: Show only ChatUI when chat is open
-  if (isChatOpen) {
-    return (
-      <div>
-        <button className="chat-button" onClick={toggleChat}>
-          💬
-        </button>
-        <ChatUI chat={chat} message={message} setMessage={setMessage} sendMessage={sendMessage} toggleChat={toggleChat} />
-      </div>
-    );
-  }
-
-  // Render description content when chat is closed
   if (!selectedPart) {
     return (
-      <div className="description">
-        <h2>Welcome to EduViz</h2>
-        <p>Select a bicycle part from the drawer to learn about its manufacturing process and materials.</p>
-        <button className="chat-button" onClick={toggleChat}>
-          💬
-        </button>
+      <div className={`${styles.descriptionContainer} ${isDarkMode ? styles.dark : ''}`}>
+        <div className={styles.description}>
+          <h2>Welcome to EduViz</h2>
+          <p>Select a bicycle part from the drawer to learn about its manufacturing process and materials.</p>
+          <button className={styles.chatButton} onClick={toggleChat}>
+            💬
+          </button>
+        </div>
       </div>
     );
   }
@@ -120,50 +103,64 @@ function ModelDescription({ selectedPart }) {
     : [];
 
   return (
-    <div className="description">
-      <h2>{partInfo.name || 'Unknown Part'}</h2>
-      <h3>How It’s Made:</h3>
-      <ol>
-        {manufacturingSteps.length > 0
-          ? manufacturingSteps.map((step, index) => <li key={index}>{step.trim()}</li>)
-          : <p>No manufacturing info available.</p>}
-      </ol>
-      <h3>Materials:</h3>
-      <p>{partInfo.materials || 'No material info available.'}</p>
-      <h3>Usage:</h3>
-      <p>
-        This {partInfo.name?.toLowerCase() || 'part'} is a key component of the bicycle, contributing to its overall
-        functionality and performance.
-      </p>
-      <h3>Educational Note:</h3>
-      <p>
-        Understanding how this part is manufactured helps students appreciate the engineering and materials science
-        behind everyday objects like bicycles.
-      </p>
-      <button className="chat-button" onClick={toggleChat}>
-        💬
-      </button>
+    <div className={`${styles.descriptionContainer} dark`}>
+      <div className={styles.description}>
+        {isChatOpen ? (
+          <ChatUI
+            chat={chat}
+            message={message}
+            setMessage={setMessage}
+            sendMessage={sendMessage}
+            toggleChat={toggleChat}
+          />
+        ) : (
+          <>
+            <h2>{partInfo.name || 'Unknown Part'}</h2>
+            <h3>How It’s Made:</h3>
+            <ol>
+              {manufacturingSteps.length > 0
+                ? manufacturingSteps.map((step, index) => <li key={index}>{step.trim()}</li>)
+                : <p>No manufacturing info available.</p>}
+            </ol>
+            <h3>Materials:</h3>
+            <p>{partInfo.materials || 'No material info available.'}</p>
+            <h3>Usage:</h3>
+            <p>
+              This {partInfo.name?.toLowerCase() || 'part'} is a key component of the bicycle, contributing to its overall
+              functionality and performance.
+            </p>
+            <h3>Educational Note:</h3>
+            <p>
+              Understanding how this part is manufactured helps students appreciate the engineering and materials science
+              behind everyday objects like bicycles.
+            </p>
+            <button className={styles.chatButton} onClick={toggleChat}>
+              💬
+            </button>
+          </>
+        )}
+      </div>
     </div>
   );
 }
 
 function ChatUI({ chat, message, setMessage, sendMessage, toggleChat }) {
   return (
-    <div className="chat-container">
-      <div className="chat-header">
+    <div className={styles.chatContainer}>
+      <div className={styles.chatHeader}>
         <h2>EduViz AI</h2>
-        <button className="chat-close-button" onClick={toggleChat}>
+        <button className={styles.chatCloseButton} onClick={toggleChat}>
           ✕
         </button>
       </div>
-      <div className="chat-messages">
+      <div className={styles.chatMessages}>
         {chat.map((msg, index) => (
-          <p key={index} className={msg.sender === 'user' ? 'user-message' : 'bot-message'}>
+          <p key={index} className={msg.sender === 'user' ? styles.userMessage : styles.botMessage}>
             <strong>{msg.sender}:</strong> <span dangerouslySetInnerHTML={{ __html: msg.text }} />
           </p>
         ))}
       </div>
-      <div className="chat-input">
+      <div className={styles.chatInput}>
         <input
           value={message}
           onChange={(e) => setMessage(e.target.value)}

@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import ModelViewer from "../components/ModelViewer";
-import ModelDescription from "../components/ModelDescription";
+import ModelViewer from "../../components/ModelSection/ModelViewer";
+import ModelDescription from "../../components/ModelSection/ModelDescription";
 import { FaSun, FaMoon } from 'react-icons/fa';
-import '../styles/App.css';
-import { bicycleData } from '../bicycleData';
+import styles from './ModelPage.module.css';
+import { bicycleData } from '../../bicycleData';
 
 export default function ModelPage() {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -59,26 +59,26 @@ export default function ModelPage() {
   const handleModelViewerLoad = (ref) => setModelViewerRef(ref);
 
   return (
-    <div className={`app ${isDarkMode ? 'dark' : ''}`}>
-      <header className="header">
-        <h1>Model-Viewer</h1>
-        <div className="header-controls">
-          <button onClick={toggleDrawer} className="menu-button">Parts</button>
-          <button onClick={toggleTheme} className="theme-toggle">
+    <div className={`${styles.modelPage} ${isDarkMode ? styles.dark : ''}`}>
+      <header className={styles.header}>
+        <h1>Eduviz-Viewer</h1>
+        <div className={styles.headerControls}>
+          <button onClick={toggleDrawer} className={styles.menuButton}>Parts</button>
+          <button onClick={toggleTheme} className={styles.themeToggle}>
             {isDarkMode ? <FaSun /> : <FaMoon />}
           </button>
         </div>
       </header>
 
-      <div className={`drawer ${isDrawerOpen ? "open" : ""}`}>
-        <div className="drawer-content">
+      <div className={`${styles.drawer} ${isDrawerOpen ? styles.open : ''}`}>
+        <div className={styles.drawerContent}>
           <h2>Parts</h2>
           <ul>
             {parts.map((part) => (
               <li
                 key={part}
                 onClick={() => handlePartSelect(part)}
-                className={selectedPart === part ? 'selected' : ''}
+                className={selectedPart === part ? 'selected' : ''} // Define 'selected' in CSS if needed
               >
                 {bicycleData.parts[part].name}
               </li>
@@ -87,25 +87,25 @@ export default function ModelPage() {
         </div>
       </div>
 
-      {isDrawerOpen && <div className="overlay" onClick={toggleDrawer}></div>}
+      {isDrawerOpen && <div className={styles.overlay} onClick={toggleDrawer}></div>}
 
-      <div className="controls">
+      <div className={styles.controls}>
         {!showDetailView && (
           <button 
             onClick={handleToggleAnimation} 
             disabled={isPlaying} 
-            className="play-button"
+            className={styles.playButton}
           >
             {isDismantleMode ? "Dismantle" : "Assemble"}
           </button>
         )}
         {showDetailView && (
-          <button onClick={handleBackClick} className="back-button">Back to Full View</button>
+          <button onClick={handleBackClick} className={styles.backButton}>Back to Full View</button>
         )}
       </div>
 
       {!showDetailView ? (
-        <div className="model-container">
+        <div className={styles.modelContainer}>
           {modelSrc ? (
             <ModelViewer 
               modelSrc={modelSrc}
@@ -118,8 +118,8 @@ export default function ModelPage() {
           )}
         </div>
       ) : (
-        <div className="split-view">
-          <div className="model-container half">
+        <div className={styles.splitView}>
+          <div className={`${styles.modelContainer} ${styles.modelContainerHalf}`}>
             {modelSrc ? (
               <ModelViewer 
                 modelSrc={modelSrc}
@@ -131,8 +131,8 @@ export default function ModelPage() {
               <p>Loading model...</p>
             )}
           </div>
-          <div className="description-container">
-            <ModelDescription selectedPart={selectedPart} />
+          <div className={styles.descriptionContainer}>
+          <ModelDescription selectedPart={selectedPart} isDarkMode={isDarkMode} />
           </div>
         </div>
       )}

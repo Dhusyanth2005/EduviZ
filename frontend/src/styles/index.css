@@ -1,25 +1,47 @@
-/* Reset default browser styles and set full height */
+/* src/index.css */
 html, body {
   margin: 0;
   padding: 0;
   height: 100%;
-  width: 100%;
-  overflow-x: hidden; /* Prevent horizontal scroll */
-  overflow-y: auto; /* Allow vertical scrolling */
+  overflow-y: auto; /* Ensures vertical scrolling is enabled */
+
+  /* Define global CSS variables (optional, can be overridden by components) */
+  --primary: #6617cb;
+  --primary-dark: #5214a3;
+  --secondary: #cb218e;
+  --dark: #0a0a0a;
+  --text-light: #b3b3b3;
+  --text-lightest: #f0f0f0;
+  --text-dark: #d0d0d0;
+  --background-light: #1a1a1a;
+  --background-dark: #0a0a0a;
+  --card-bg: #252525;
+
+  /* Firefox Scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary) var(--background-dark);
 }
 
-/* Ensure the #root div (where React mounts) takes full space */
-#root {
-  min-height: 100%; /* Changed to min-height to allow expansion */
-  width: 100%;
+/* Webkit Scrollbar (Chrome, Edge, Safari) */
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  width: 10px; /* Width of the vertical scrollbar */
 }
 
-/* Optional: Set a default background color to match your app's theme */
-body {
-  background-color: #f0f0f0; /* Default light mode background */
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track {
+  background: var(--background-dark); /* Track color */
+  border-radius: 5px;
 }
 
-/* Dynamic background based on the app's theme */
-.app.dark body {
-  background-color: #1a1a1a; /* Dark mode background */
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb {
+  background: var(--primary); /* Thumb color */
+  border-radius: 5px;
+  border: 2px solid var(--background-dark); /* Padding around thumb */
+}
+
+html::-webkit-scrollbar-thumb:hover,
+body::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-dark); /* Darker shade on hover */
 }

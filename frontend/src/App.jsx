@@ -1,10 +1,12 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import HomePage from './pages/HomePage.jsx';
-import ModelPage from './pages/ModelPage.jsx';
-import Login from './components/Login.jsx';
-import Register from './components/Register.jsx';
-import DashboardPage from './pages/DashBoardPage.jsx'; // Import DashboardPage component
+import HomePage from './pages/HomePage/HomePage.jsx';
+import ModelPage from './pages/ModelPage/ModelPage.jsx';
+
+
+import LearnerDashboard from './pages/LearnerDashboard/LearnerDashboard.jsx';
+import SignUp from './pages/SignUp/SignUp.jsx';
+import RoleSelection from './pages/RoleSelection/RoleSelection.jsx';
 
 const App = () => {
   // Simple authentication check (replace with real auth logic)
@@ -18,11 +20,11 @@ const App = () => {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/model" element={<ModelPage />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<SignUp/>} />
+        <Route path='/RoleSelection' element={<RoleSelection />} />
         <Route
           path="/dashboard"
-          element={isAuthenticated() ? <DashboardPage /> : <Navigate to="/login" />}
+          element={isAuthenticated() ? <LearnerDashboard /> : <Navigate to="/login" />}
         />
       </Routes>
     </Router>
