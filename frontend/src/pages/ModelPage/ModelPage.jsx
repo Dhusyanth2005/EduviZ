@@ -10,7 +10,7 @@ export default function ModelPage() {
   const [showDetailView, setShowDetailView] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [modelViewerRef, setModelViewerRef] = useState(null);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(true);
   const [modelSrc, setModelSrc] = useState(null);
   const [isDismantleMode, setIsDismantleMode] = useState(true);
   const [selectedPart, setSelectedPart] = useState(null);

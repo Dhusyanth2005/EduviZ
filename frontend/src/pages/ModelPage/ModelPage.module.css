@@ -7,8 +7,8 @@
     --drawer-bg: rgba(255, 255, 255, 0.95);
     --model-bg: #ffffff;
     --overlay-bg: rgba(0, 0, 0, 0.4);
-    --primary: #38bdf8;
-    --secondary: #818cf8;
+    --primary: #6617cb;
+    --secondary: #cb218e;
   
     min-height: 100vh;
     max-height: 100vh;
@@ -192,12 +192,12 @@
   
   .modelContainer {
     width: 100%;
-    height: calc(100vh - 80px);
+    height: calc(100vh - 50px);
     overflow: hidden;
   }
   
   .modelContainerHalf {
-    width: 50%;
+    width: 70%;
     height: 100%;
   }
   
@@ -215,6 +215,7 @@
     backdrop-filter: blur(12px);
     box-shadow: 0 2px 4px var(--shadow-color);
     overflow: hidden;
+    
   }
   
   .modelPage.dark .descriptionContainer {

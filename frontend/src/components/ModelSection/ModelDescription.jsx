@@ -3,7 +3,7 @@ import { bicycleData } from '../../bicycleData';
 import styles from './ModelDescription.module.css';
 import axios from 'axios';
 
-function ModelDescription({ selectedPart,isDarkMode }) {
+function ModelDescription({ selectedPart, isDarkMode }) {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [message, setMessage] = useState('');
   const [chat, setChat] = useState([]);
@@ -92,6 +92,16 @@ function ModelDescription({ selectedPart,isDarkMode }) {
           <button className={styles.chatButton} onClick={toggleChat}>
             💬
           </button>
+          {isChatOpen && (
+            <ChatUI
+              chat={chat}
+              message={message}
+              setMessage={setMessage}
+              sendMessage={sendMessage}
+              toggleChat={toggleChat}
+              isDarkMode={isDarkMode}
+            />
+          )}
         </div>
       </div>
     );
@@ -103,7 +113,7 @@ function ModelDescription({ selectedPart,isDarkMode }) {
     : [];
 
   return (
-    <div className={`${styles.descriptionContainer} dark`}>
+    <div className={`${styles.descriptionContainer} ${isDarkMode ? styles.dark : ''}`}>
       <div className={styles.description}>
         {isChatOpen ? (
           <ChatUI
@@ -112,11 +122,12 @@ function ModelDescription({ selectedPart,isDarkMode }) {
             setMessage={setMessage}
             sendMessage={sendMessage}
             toggleChat={toggleChat}
+            isDarkMode={isDarkMode}
           />
         ) : (
           <>
             <h2>{partInfo.name || 'Unknown Part'}</h2>
-            <h3>How It’s Made:</h3>
+            <h3>How It's Made:</h3>
             <ol>
               {manufacturingSteps.length > 0
                 ? manufacturingSteps.map((step, index) => <li key={index}>{step.trim()}</li>)
@@ -144,30 +155,88 @@ function ModelDescription({ selectedPart,isDarkMode }) {
   );
 }
 
-function ChatUI({ chat, message, setMessage, sendMessage, toggleChat }) {
+// This is the updated Telegram-style ChatUI component
+function ChatUI({ chat, message, setMessage, sendMessage, toggleChat, isDarkMode }) {
+  const formatTime = () => {
+    const now = new Date();
+    return `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+  };
+
+  // Group messages by sender
+  const groupedMessages = [];
+  let currentGroup = null;
+
+  chat.forEach((msg) => {
+    if (!currentGroup || currentGroup.sender !== msg.sender) {
+      currentGroup = {
+        sender: msg.sender,
+        messages: [{ ...msg, time: formatTime() }],
+      };
+      groupedMessages.push(currentGroup);
+    } else {
+      currentGroup.messages.push({ ...msg, time: formatTime() });
+    }
+  });
+
   return (
-    <div className={styles.chatContainer}>
+    <div className={`${styles.chatContainer} ${isDarkMode ? styles.dark : ''}`}>
       <div className={styles.chatHeader}>
-        <h2>EduViz AI</h2>
+        <div>
+          <h2>EduViz Assistant</h2>
+          <div className={styles.userStatus}>online</div>
+        </div>
         <button className={styles.chatCloseButton} onClick={toggleChat}>
           ✕
         </button>
       </div>
       <div className={styles.chatMessages}>
-        {chat.map((msg, index) => (
-          <p key={index} className={msg.sender === 'user' ? styles.userMessage : styles.botMessage}>
-            <strong>{msg.sender}:</strong> <span dangerouslySetInnerHTML={{ __html: msg.text }} />
-          </p>
+        {groupedMessages.map((group, groupIndex) => (
+          <div 
+            key={groupIndex} 
+            className={`${styles.messageGroup} ${
+              group.sender === 'user' ? styles.userGroup : styles.botGroup
+            }`}
+          >
+            {group.messages.map((msg, msgIndex) => (
+              <div 
+                key={`${groupIndex}-${msgIndex}`} 
+                className={msg.sender === 'user' ? styles.userMessage : styles.botMessage}
+              >
+                {msgIndex === 0 && (
+                  <div className={styles.messageSender}>
+                    {msg.sender === 'user' ? 'You' : 'EduViz AI'}
+                  </div>
+                )}
+                <span dangerouslySetInnerHTML={{ __html: msg.text }} />
+                <div className={styles.messageTime}>
+                  {msg.time}
+                  {msg.sender === 'user' && (
+                    <span className={`${styles.messageStatus} ${
+                      msgIndex === group.messages.length - 1 && groupIndex === groupedMessages.length - 1 
+                        ? styles.statusSent
+                        : styles.statusRead
+                    }`}></span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         ))}
       </div>
-      <div className={styles.chatInput}>
-        <input
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-          placeholder="Type 'start' or ask anything..."
-        />
-        <button onClick={sendMessage}>Send</button>
+      <div className={isDarkMode ? styles.chatInputDark : styles.chatInput}>
+        <div className={`${styles.inputWrapper} ${isDarkMode ? styles.dark : ''}`}>
+          <button className={styles.attachButton}>📎</button>
+          <input
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+            placeholder="Type a message..."
+          />
+          <button className={styles.emojiButton}>😊</button>
+        </div>
+        <button className={styles.sendButton} onClick={sendMessage}>
+          <div className={styles.sendButtonIcon}></div>
+        </button>
       </div>
     </div>
   );

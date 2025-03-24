@@ -17,7 +17,6 @@ const HomePage = () => {
   return (
     <div className={styles.homepage}>
       <Header />
-
       <HeroSection />
 
       <section className={styles.featuresSection}>
@@ -25,42 +24,29 @@ const HomePage = () => {
           <div className={styles.sectionHeader}>
             <h2 className={styles.sectionTitle}>How EduViz Works</h2>
             <p className={styles.sectionSubtitle}>
-              Our platform makes 3D learning accessible and engaging for
-              everyone
+              Our platform makes 3D learning accessible and engaging for everyone
             </p>
           </div>
-
           <div className={styles.featuresGrid}>
             <div className={styles.featureCard}>
-              <div className={styles.featureIcon}>
-                <FaCubes />
-              </div>
+              <div className={styles.featureIcon}><FaCubes /></div>
               <h3 className={styles.featureTitle}>Diverse 3D Models</h3>
               <p className={styles.featureDescription}>
-                Explore thousands of interactive 3D models across engineering,
-                medical, architectural, and educational categories.
+                Explore thousands of interactive 3D models across engineering, medical, architectural, and educational categories.
               </p>
             </div>
-
             <div className={styles.featureCard}>
-              <div className={styles.featureIcon}>
-                <FaLaptopCode />
-              </div>
+              <div className={styles.featureIcon}><FaLaptopCode /></div>
               <h3 className={styles.featureTitle}>WebGL Technology</h3>
               <p className={styles.featureDescription}>
-                Powered by Three.js for smooth and responsive 3D rendering
-                directly in your browser without additional plugins.
+                Powered by Three.js for smooth and responsive 3D rendering directly in your browser without additional plugins.
               </p>
             </div>
-
             <div className={styles.featureCard}>
-              <div className={styles.featureIcon}>
-                <FaGraduationCap />
-              </div>
+              <div className={styles.featureIcon}><FaGraduationCap /></div>
               <h3 className={styles.featureTitle}>Interactive Learning</h3>
               <p className={styles.featureDescription}>
-                Rotate, zoom, dissect, and interact with models to understand
-                complex concepts through visual exploration.
+                Rotate, zoom, dissect, and interact with models to understand complex concepts through visual exploration.
               </p>
             </div>
           </div>
@@ -68,6 +54,14 @@ const HomePage = () => {
       </section>
 
       <section className={styles.categoriesSection}>
+        {/* Adding the HeroSection-like background */}
+        <div className={styles.heroBackground}>
+          <div className={`${styles.shape} ${styles.shape1}`}></div>
+          <div className={`${styles.shape} ${styles.shape2}`}></div>
+          <div className={`${styles.shape} ${styles.shape3}`}></div>
+          <div className={`${styles.shape} ${styles.shape4}`}></div>
+          <div className={styles.heroOverlay}></div>
+        </div>
         <div className={styles.container}>
           <div className={styles.sectionHeader}>
             <h2 className={styles.sectionTitle}>Explore Categories</h2>
@@ -75,33 +69,28 @@ const HomePage = () => {
               Discover 3D models across multiple disciplines and subjects
             </p>
           </div>
-
           <div className={styles.categoriesGrid}>
             <Link to="/category/engineering" className={styles.categoryCard}>
               <div className={`${styles.categoryImage} ${styles.engineeringBg}`}></div>
               <h3 className={styles.categoryTitle}>Engineering</h3>
               <p className={styles.categoryCount}>240+ Models</p>
             </Link>
-
             <Link to="/category/medical" className={styles.categoryCard}>
               <div className={`${styles.categoryImage} ${styles.medicalBg}`}></div>
               <h3 className={styles.categoryTitle}>Medical</h3>
               <p className={styles.categoryCount}>180+ Models</p>
             </Link>
-
             <Link to="/category/architecture" className={styles.categoryCard}>
               <div className={`${styles.categoryImage} ${styles.architectureBg}`}></div>
               <h3 className={styles.categoryTitle}>Architecture</h3>
               <p className={styles.categoryCount}>150+ Models</p>
             </Link>
-
             <Link to="/category/science" className={styles.categoryCard}>
               <div className={`${styles.categoryImage} ${styles.scienceBg}`}></div>
               <h3 className={styles.categoryTitle}>Science</h3>
               <p className={styles.categoryCount}>320+ Models</p>
             </Link>
           </div>
-
           <div className={styles.categoriesCta}>
             <Link to="/categories" className={styles.btnSecondary}>
               View All Categories
@@ -118,40 +107,29 @@ const HomePage = () => {
               Join our community as a learner or creator in three simple steps
             </p>
           </div>
-
           <div className={styles.stepsContainer}>
             <div className={styles.stepCard}>
               <div className={styles.stepNumber}>1</div>
-              <div className={styles.stepIcon}>
-                <FaUserGraduate />
-              </div>
+              <div className={styles.stepIcon}><FaUserGraduate /></div>
               <h3 className={styles.stepTitle}>Create an Account</h3>
               <p className={styles.stepDescription}>
                 Sign up for free as a learner or creator and set up your profile
               </p>
             </div>
-
             <div className={styles.stepCard}>
               <div className={styles.stepNumber}>2</div>
-              <div className={styles.stepIcon}>
-                <FaStore />
-              </div>
+              <div className={styles.stepIcon}><FaStore /></div>
               <h3 className={styles.stepTitle}>Browse or Upload</h3>
               <p className={styles.stepDescription}>
-                Discover models as a learner or upload your creations as a
-                creator
+                Discover models as a learner or upload your creations as a creator
               </p>
             </div>
-
             <div className={styles.stepCard}>
               <div className={styles.stepNumber}>3</div>
-              <div className={styles.stepIcon}>
-                <FaChalkboardTeacher />
-              </div>
+              <div className={styles.stepIcon}><FaChalkboardTeacher /></div>
               <h3 className={styles.stepTitle}>Learn or Earn</h3>
               <p className={styles.stepDescription}>
-                Interact with models to learn or earn money by selling your
-                creations
+                Interact with models to learn or earn money by selling your creations
               </p>
             </div>
           </div>
@@ -159,6 +137,14 @@ const HomePage = () => {
       </section>
 
       <section className={styles.featuredModelsSection}>
+        {/* Adding the HeroSection-like background */}
+        <div className={styles.heroBackground}>
+          <div className={`${styles.shape} ${styles.shape1}`}></div>
+          <div className={`${styles.shape} ${styles.shape2}`}></div>
+          <div className={`${styles.shape} ${styles.shape3}`}></div>
+          <div className={`${styles.shape} ${styles.shape4}`}></div>
+          <div className={styles.heroOverlay}></div>
+        </div>
         <div className={styles.container}>
           <div className={styles.sectionHeader}>
             <h2 className={styles.sectionTitle}>Featured Models</h2>
@@ -166,7 +152,6 @@ const HomePage = () => {
               Top-rated and popular 3D learning resources
             </p>
           </div>
-
           <div className={styles.modelsGrid}>
             <div className={styles.modelCard}>
               <div className={`${styles.modelImage} ${styles.model1Bg}`}></div>
@@ -182,7 +167,6 @@ const HomePage = () => {
                 </Link>
               </div>
             </div>
-
             <div className={styles.modelCard}>
               <div className={`${styles.modelImage} ${styles.model2Bg}`}></div>
               <div className={styles.modelContent}>
@@ -197,7 +181,6 @@ const HomePage = () => {
                 </Link>
               </div>
             </div>
-
             <div className={styles.modelCard}>
               <div className={`${styles.modelImage} ${styles.model3Bg}`}></div>
               <div className={styles.modelContent}>
@@ -212,7 +195,6 @@ const HomePage = () => {
                 </Link>
               </div>
             </div>
-
             <div className={styles.modelCard}>
               <div className={`${styles.modelImage} ${styles.model4Bg}`}></div>
               <div className={styles.modelContent}>
@@ -228,7 +210,6 @@ const HomePage = () => {
               </div>
             </div>
           </div>
-
           <div className={styles.modelsCta}>
             <Link to="/models" className={styles.btnPrimary}>
               Explore All Models
@@ -245,14 +226,11 @@ const HomePage = () => {
               Hear from students, educators, and creators in our community
             </p>
           </div>
-
           <div className={styles.testimonialsGrid}>
             <div className={styles.testimonialCard}>
               <div className={styles.testimonialContent}>
                 <p className={styles.testimonialText}>
-                  "As a medical student, the interactive anatomy models have
-                  revolutionized how I study complex systems. I can rotate and
-                  explore each organ in detail."
+                  "As a medical student, the interactive anatomy models have revolutionized how I study complex systems."
                 </p>
               </div>
               <div className={styles.testimonialAuthor}>
@@ -263,13 +241,10 @@ const HomePage = () => {
                 </div>
               </div>
             </div>
-
             <div className={styles.testimonialCard}>
               <div className={styles.testimonialContent}>
                 <p className={styles.testimonialText}>
-                  "My engineering students grasp mechanical concepts much faster
-                  when they can manipulate and interact with the 3D models on
-                  EduViz."
+                  "My engineering students grasp mechanical concepts much faster with EduViz's 3D models."
                 </p>
               </div>
               <div className={styles.testimonialAuthor}>
@@ -280,13 +255,10 @@ const HomePage = () => {
                 </div>
               </div>
             </div>
-
             <div className={styles.testimonialCard}>
               <div className={styles.testimonialContent}>
                 <p className={styles.testimonialText}>
-                  "I've earned over $10,000 selling my architectural 3D models.
-                  The platform makes it easy to reach students and professionals
-                  worldwide."
+                  "I've earned over $10,000 selling my architectural 3D models on EduViz."
                 </p>
               </div>
               <div className={styles.testimonialAuthor}>
@@ -302,22 +274,23 @@ const HomePage = () => {
       </section>
 
       <section className={styles.ctaSection}>
+        {/* Adding the HeroSection-like background */}
+        <div className={styles.heroBackground}>
+          <div className={`${styles.shape} ${styles.shape1}`}></div>
+          <div className={`${styles.shape} ${styles.shape2}`}></div>
+          <div className={`${styles.shape} ${styles.shape3}`}></div>
+          <div className={`${styles.shape} ${styles.shape4}`}></div>
+          <div className={styles.heroOverlay}></div>
+        </div>
         <div className={styles.container}>
           <div className={styles.ctaContent}>
-            <h2 className={styles.ctaTitle}>
-              Ready to Transform Your Learning Experience?
-            </h2>
+            <h2 className={styles.ctaTitle}>Ready to Transform Your Learning Experience?</h2>
             <p className={styles.ctaText}>
-              Join thousands of students, educators, and creators on EduViz
-              today
+              Join thousands of students, educators, and creators on EduViz today
             </p>
             <div className={styles.ctaButtons}>
-              <Link to="/signup" className={styles.btnPrimary}>
-                Get Started for Free
-              </Link>
-              <Link to="/creators" className={styles.btnSecondary}>
-                Learn About Creating
-              </Link>
+              <Link to="/signup" className={styles.btnPrimary}>Get Started for Free</Link>
+              <Link to="/creators" className={styles.btnSecondary}>Learn About Creating</Link>
             </div>
           </div>
         </div>
