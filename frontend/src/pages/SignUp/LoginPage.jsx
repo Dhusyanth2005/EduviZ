@@ -1,16 +1,12 @@
-// src/pages/SignUp.js
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import styles from "./SignUp.module.css"; // Updated import
+import styles from "./SignUp.module.css"; // Reusing the same CSS
 
-const SignUp = () => {
+const LoginPage = () => {
   const canvasRef = useRef(null);
-  const [isSignUp, setIsSignUp] = useState(true);
   const [formData, setFormData] = useState({
-    fullName: "",
     email: "",
     password: "",
-    termsAgree: false,
   });
   const navigate = useNavigate();
 
@@ -96,44 +92,27 @@ const SignUp = () => {
     };
   }, []);
 
-  const handleToggle = (e) => {
-    e.preventDefault();
-    setIsSignUp(!isSignUp);
-  };
-
   const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: value,
     }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (isSignUp) {
-      if (
-        !formData.fullName ||
-        !formData.email ||
-        !formData.password ||
-        !formData.termsAgree
-      ) {
-        alert("Please fill all fields and agree to terms");
-        return;
-      }
-      console.log("Sign up successful:", formData);
-      navigate("/role-selection");
-    } else {
-      if (!formData.email || !formData.password) {
-        alert("Please fill all fields");
-        return;
-      }
-      console.log("Sign in attempt:", formData);
+    if (!formData.email || !formData.password) {
+      alert("Please fill all fields");
+      return;
     }
+    console.log("Sign in attempt:", formData);
+    // Add your backend API call here for login
+    navigate("/dashboard"); // Redirect after successful login (adjust as needed)
   };
 
   return (
-    <div className={styles.signupRoot}> {/* Added wrapper */}
+    <div className={styles.signupRoot}>
       <div className={styles.signupPage}>
         <div className={styles.signupContainer}>
           <div className={styles.modelBackground}>
@@ -156,91 +135,21 @@ const SignUp = () => {
                   EduViz
                 </div>
                 <h1 className={styles.signupHeadline}>
-                  Join <span>EduViz</span> and Elevate Your Learning
+                  Welcome Back to <span>EduViz</span>
                 </h1>
                 <p className={styles.signupSubtext}>
-                  Access high-quality courses, interactive content, and expert
-                  guidance. Learn, grow, and excel with EduViz!
+                  Sign in to continue your learning journey with EduViz!
                 </p>
-                <div className={styles.signupFeatures}>
-                  <div className={styles.featurePoint}>
-                    <div className={styles.featurePointIcon}>
-                      <span>📚</span>
-                    </div>
-                    <div className={styles.featurePointText}>
-                      <h3 className={styles.featurePointTitle}>
-                        Unlimited Course Access
-                      </h3>
-                      <p className={styles.featurePointDescription}>
-                        Get access to a variety of courses in different domains.
-                      </p>
-                    </div>
-                  </div>
-                  <div className={styles.featurePoint}>
-                    <div className={styles.featurePointIcon}>
-                      <span>🎯</span>
-                    </div>
-                    <div className={styles.featurePointText}>
-                      <h3 className={styles.featurePointTitle}>
-                        Personalized Learning Paths
-                      </h3>
-                      <p className={styles.featurePointDescription}>
-                        Customize your learning experience with AI-driven
-                        recommendations.
-                      </p>
-                    </div>
-                  </div>
-                  <div className={styles.featurePoint}>
-                    <div className={styles.featurePointIcon}>
-                      <span>💼</span>
-                    </div>
-                    <div className={styles.featurePointText}>
-                      <h3 className={styles.featurePointTitle}>
-                        Career-Oriented Training
-                      </h3>
-                      <p className={styles.featurePointDescription}>
-                        Gain skills that help you land jobs and internships.
-                      </p>
-                    </div>
-                  </div>
-                </div>
               </div>
 
               <div className={styles.signupFormContainer}>
                 <div className={styles.formDecoration + " " + styles.formDecoration1} />
                 <div className={styles.formDecoration + " " + styles.formDecoration2} />
                 <div className={styles.formHeader}>
-                  <h2 className={styles.formTitle}>
-                    {isSignUp
-                      ? "Create Your EduViz Account"
-                      : "Sign In to EduViz"}
-                  </h2>
-                  <p className={styles.formSubtitle}>
-                    {isSignUp
-                      ? "Start learning today by signing up"
-                      : "Welcome back! Please sign in"}
-                  </p>
+                  <h2 className={styles.formTitle}>Sign In to EduViz</h2>
+                  <p className={styles.formSubtitle}>Welcome back! Please sign in</p>
                 </div>
                 <form className={styles.signupForm} onSubmit={handleSubmit}>
-                  {isSignUp && (
-                    <div className={styles.formGroup}>
-                      <label
-                        className={styles.formLabel}
-                        htmlFor="fullName"
-                      >
-                        Full Name
-                      </label>
-                      <input
-                        type="text"
-                        className={styles.formControl}
-                        id="fullName"
-                        name="fullName"
-                        value={formData.fullName}
-                        onChange={handleInputChange}
-                        placeholder="Enter your full name"
-                      />
-                    </div>
-                  )}
                   <div className={styles.formGroup}>
                     <label className={styles.formLabel} htmlFor="email">
                       Email Address
@@ -266,34 +175,11 @@ const SignUp = () => {
                       name="password"
                       value={formData.password}
                       onChange={handleInputChange}
-                      placeholder={
-                        isSignUp
-                          ? "Create a strong password"
-                          : "Enter your password"
-                      }
+                      placeholder="Enter your password"
                     />
                   </div>
-                  {isSignUp && (
-                    <div className={styles.formCheckbox}>
-                      <input
-                        type="checkbox"
-                        className={styles.checkboxInput}
-                        id="termsAgree"
-                        name="termsAgree"
-                        checked={formData.termsAgree}
-                        onChange={handleInputChange}
-                      />
-                      <label
-                        className={styles.checkboxLabel}
-                        htmlFor="termsAgree"
-                      >
-                        I agree to the <a href="#">Terms of Service</a> and{" "}
-                        <a href="#">Privacy Policy</a>
-                      </label>
-                    </div>
-                  )}
                   <button type="submit" className={styles.signupButton}>
-                    <span>{isSignUp ? "Sign Up" : "Sign In"}</span>
+                    <span>Sign In</span>
                   </button>
                   <div className={styles.orDivider}>
                     <div className={styles.dividerLine} />
@@ -312,12 +198,8 @@ const SignUp = () => {
                     </button>
                   </div>
                   <div className={styles.signinLink}>
-                    {isSignUp
-                      ? "Already have an account?"
-                      : "Don't have an account?"}{" "}
-                    <a href="#" onClick={handleToggle}>
-                      {isSignUp ? "Sign in" : "Sign up"}
-                    </a>
+                    Don’t have an account?{" "}
+                    <a href="/signup">Sign up</a>
                   </div>
                 </form>
               </div>
@@ -329,4 +211,4 @@ const SignUp = () => {
   );
 };
 
-export default SignUp;
+export default LoginPage;

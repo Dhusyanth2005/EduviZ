@@ -5,8 +5,9 @@ import ModelPage from './pages/ModelPage/ModelPage.jsx';
 
 
 import LearnerDashboard from './pages/LearnerDashboard/LearnerDashboard.jsx';
-import SignUp from './pages/SignUp/SignUp.jsx';
 import RoleSelection from './pages/RoleSelection/RoleSelection.jsx';
+import LoginPage from './pages/SignUp/LoginPage.jsx';
+import SignUpPage from './pages/SignUp/SignUpPage.jsx';
 
 const App = () => {
   // Simple authentication check (replace with real auth logic)
@@ -20,7 +21,8 @@ const App = () => {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/model" element={<ModelPage />} />
-        <Route path="/login" element={<SignUp/>} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignUpPage />} />
         <Route path='/RoleSelection' element={<RoleSelection />} />
         <Route
           path="/dashboard"
