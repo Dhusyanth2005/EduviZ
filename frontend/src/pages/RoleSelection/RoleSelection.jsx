@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import "./RoleSelection.css";
 
 const RoleSelection = () => {
@@ -7,7 +8,7 @@ const RoleSelection = () => {
 
   const handleMouseEnter = useCallback((role) => setHoveredRole(role), []);
   const handleMouseLeave = useCallback(() => setHoveredRole(null), []);
-
+  const navigate = useNavigate();
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -146,7 +147,7 @@ const RoleSelection = () => {
               <li>Progress tracking dashboard</li>
               <li>Connect with peers</li>
             </ul>
-            <button className="role-button student">
+            <button className="role-button student" onClick={()=>navigate("/dashboard")}>
               <span>Continue as Student</span>
               <span className="button-arrow">→</span>
             </button>
@@ -169,7 +170,7 @@ const RoleSelection = () => {
               <li>Student analytics dashboard</li>
               <li>Assessment generator</li>
             </ul>
-            <button className="role-button teacher">
+            <button className="role-button teacher" onClick={()=>navigate('/instructor')}>
               <span>Continue as Teacher</span>
               <span className="button-arrow">→</span>
             </button>

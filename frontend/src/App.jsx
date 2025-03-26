@@ -8,6 +8,7 @@ import LearnerDashboard from './pages/LearnerDashboard/LearnerDashboard.jsx';
 import RoleSelection from './pages/RoleSelection/RoleSelection.jsx';
 import LoginPage from './pages/SignUp/LoginPage.jsx';
 import SignUpPage from './pages/SignUp/SignUpPage.jsx';
+import InstructorDashboard from './pages/InstructorDashboard/InstructorDashboardPage.jsx';
 
 const App = () => {
   // Simple authentication check (replace with real auth logic)
@@ -28,6 +29,7 @@ const App = () => {
           path="/dashboard"
           element={isAuthenticated() ? <LearnerDashboard /> : <Navigate to="/login" />}
         />
+        <Route path='/instructor' element={<InstructorDashboard/>}/>
       </Routes>
     </Router>
   );
