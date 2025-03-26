@@ -14,21 +14,52 @@ export default function ModelPage() {
   const [modelSrc, setModelSrc] = useState(null);
   const [isDismantleMode, setIsDismantleMode] = useState(true);
   const [selectedPart, setSelectedPart] = useState(null);
+  const [error, setError] = useState('');
 
   const parts = Object.keys(bicycleData.parts);
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
   useEffect(() => {
-    const url = `http://localhost:8080/model/${bicycleData.fullviewModel}`;
-    setModelSrc(url);
-  }, []);
+    const fetchModel = async () => {
+      const url = `${apiUrl}/model/${bicycleData.fullviewModel}`;
+      console.log('Fetching full model from:', url); // Debug log
+      try {
+        const response = await fetch(url, { credentials: 'include' });
+        if (!response.ok) {
+          throw new Error(`Failed to fetch model: ${response.status}`);
+        }
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        setModelSrc(blobUrl);
+        setError('');
+      } catch (err) {
+        console.error('Fetch error:', err);
+        setError('Failed to load model. Please try again.');
+      }
+    };
+    fetchModel();
+  }, [apiUrl]);
 
-  const handlePartSelect = (part) => {
+  const handlePartSelect = async (part) => {
     const partFileId = bicycleData.parts[part].modelId;
-    const url = `http://localhost:8080/model/${partFileId}`;
-    setModelSrc(url);
-    setSelectedPart(part);
-    setShowDetailView(true);
-    setIsDrawerOpen(false);
+    const url = `${apiUrl}/model/${partFileId}`;
+    console.log('Fetching part model from:', url); // Debug log
+    try {
+      const response = await fetch(url, { credentials: 'include' });
+      if (!response.ok) {
+        throw new Error(`Failed to fetch part model: ${response.status}`);
+      }
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      setModelSrc(blobUrl);
+      setSelectedPart(part);
+      setShowDetailView(true);
+      setIsDrawerOpen(false);
+      setError('');
+    } catch (err) {
+      console.error('Part fetch error:', err);
+      setError('Failed to load part model.');
+    }
   };
 
   const handleToggleAnimation = () => {
@@ -47,11 +78,21 @@ export default function ModelPage() {
     }
   };
 
-  const handleBackClick = () => {
+  const handleBackClick = async () => {
     setShowDetailView(false);
     setSelectedPart(null);
-    const url = `http://localhost:8080/model/${bicycleData.fullviewModel}`;
-    setModelSrc(url);
+    const url = `${apiUrl}/model/${bicycleData.fullviewModel}`;
+    try {
+      const response = await fetch(url, { credentials: 'include' });
+      if (!response.ok) throw new Error('Failed to fetch full model');
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      setModelSrc(blobUrl);
+      setError('');
+    } catch (err) {
+      console.error('Back fetch error:', err);
+      setError('Failed to reload full model.');
+    }
   };
 
   const toggleDrawer = () => setIsDrawerOpen(!isDrawerOpen);
@@ -78,7 +119,7 @@ export default function ModelPage() {
               <li
                 key={part}
                 onClick={() => handlePartSelect(part)}
-                className={selectedPart === part ? 'selected' : ''} // Define 'selected' in CSS if needed
+                className={selectedPart === part ? styles.selected : ''}
               >
                 {bicycleData.parts[part].name}
               </li>
@@ -103,6 +144,8 @@ export default function ModelPage() {
           <button onClick={handleBackClick} className={styles.backButton}>Back to Full View</button>
         )}
       </div>
+
+      {error && <p className={styles.error}>{error}</p>}
 
       {!showDetailView ? (
         <div className={styles.modelContainer}>
@@ -132,7 +175,7 @@ export default function ModelPage() {
             )}
           </div>
           <div className={styles.descriptionContainer}>
-          <ModelDescription selectedPart={selectedPart} isDarkMode={isDarkMode} />
+            <ModelDescription selectedPart={selectedPart} isDarkMode={isDarkMode} />
           </div>
         </div>
       )}

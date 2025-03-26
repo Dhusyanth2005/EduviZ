@@ -9,27 +9,32 @@ require('dotenv').config();
 
 const app = express();
 
-// Middleware
+// CORS setup
 app.use(cors({
-  origin: process.env.CLIENT_URL,
+  origin: process.env.CLIENT_URL || 'http://localhost:3000',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
 app.use(express.json());
-app.use(session({
+
+// Session and Passport only for auth routes
+const sessionMiddleware = session({
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: {
     secure: process.env.NODE_ENV === 'production',
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    maxAge: 24 * 60 * 60 * 1000
   }
-}));
-app.use(passport.initialize());
-app.use(passport.session());
+});
 
-// Routes
+app.use('/auth', sessionMiddleware);
+app.use('/auth', passport.initialize());
+app.use('/auth', passport.session());
+
+// Public routes (no session required)
 app.use(chatRoutes);
 app.use(modelRoutes);
 app.use(authRoutes);

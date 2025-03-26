@@ -1,5 +1,5 @@
 const { ObjectId } = require('mongodb');
-const { getGfs } = require('../config/db');
+const { getGfs ,getDb} = require('../config/db');
 
 const uploadModel = async (req, res) => {
   const gfs = getGfs();
@@ -28,25 +28,33 @@ const uploadModel = async (req, res) => {
 };
 
 const fetchModel = async (req, res) => {
-  const gfs = getGfs();
-  if (!gfs) return res.status(503).send('Database not ready');
-  try {
-    const fileId = new ObjectId(req.params.id);
-    const files = await (await getDb()).collection('models.files').findOne({ _id: fileId });
-    if (!files) return res.status(404).send('Model not found');
-
-    res.set('Content-Type', files.contentType);
-    const downloadStream = gfs.openDownloadStream(fileId);
-    downloadStream.pipe(res);
-
-    downloadStream.on('error', (error) => {
-      console.error('Stream error:', error);
-      res.status(500).send('Error streaming model');
-    });
-  } catch (error) {
-    console.error('Fetch error:', error);
-    res.status(500).send('Error fetching model');
-  }
+    const gfs = getGfs();
+    console.log('Fetching model ID:', req.params.id); // Debug log
+    if (!gfs) {
+      console.log('Database not ready');
+      return res.status(503).send('Database not ready');
+    }
+    try {
+      const fileId = new ObjectId(req.params.id);
+      const files = await (await getDb()).collection('models.files').findOne({ _id: fileId });
+      if (!files) {
+        console.log('Model not found:', fileId);
+        return res.status(404).send('Model not found');
+      }
+  
+      console.log('Serving model:', files.filename);
+      res.set('Content-Type', files.contentType || 'model/gltf-binary');
+      const downloadStream = gfs.openDownloadStream(fileId);
+      downloadStream.pipe(res);
+  
+      downloadStream.on('error', (error) => {
+        console.error('Stream error:', error);
+        res.status(500).send('Error streaming model');
+      });
+    } catch (error) {
+      console.error('Fetch error:', error);
+      res.status(500).send('Error fetching model');
+    }
 };
 
 const listModels = async (req, res) => {

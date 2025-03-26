@@ -1,13 +1,24 @@
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const { getDb } = require('../config/db');
 require('dotenv').config();
 
 passport.serializeUser((user, done) => {
-  done(null, user);
+  done(null, user._id ? user._id.toString() : user.id); // Handle both MongoDB and Google users
 });
 
-passport.deserializeUser((user, done) => {
-  done(null, user);
+passport.deserializeUser(async (id, done) => {
+  try {
+    const db = getDb();
+    const user = await db.collection('users').findOne({ _id: require('mongodb').ObjectId(id) });
+    if (user) {
+      done(null, user);
+    } else {
+      done(null, { id }); // For Google users not stored in DB
+    }
+  } catch (error) {
+    done(error, null);
+  }
 });
 
 passport.use(new GoogleStrategy({
@@ -18,12 +29,17 @@ passport.use(new GoogleStrategy({
   },
   async (req, accessToken, refreshToken, profile, done) => {
     try {
-      const user = {
-        id: profile.id,
-        email: profile.emails[0].value,
-        name: profile.displayName,
-        picture: profile.photos[0].value
-      };
+      const db = getDb();
+      let user = await db.collection('users').findOne({ email: profile.emails[0].value });
+      if (!user) {
+        user = {
+          email: profile.emails[0].value,
+          fullName: profile.displayName,
+          googleId: profile.id,
+          createdAt: new Date(),
+        };
+        await db.collection('users').insertOne(user);
+      }
       return done(null, user);
     } catch (error) {
       return done(error, null);

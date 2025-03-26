@@ -1,6 +1,6 @@
 const express = require('express');
 const passport = require('../middleware/passport');
-const { logout, authStatus, getUser, sendOTP, verifyOTP } = require('../controllers/authController');
+const { logout, authStatus, getUser, sendOTP, verifyOTP, signup, login } = require('../controllers/authController');
 const router = express.Router();
 
 router.get('/auth/google', passport.authenticate('google', { 
@@ -18,5 +18,7 @@ router.get('/auth/status', authStatus);
 router.get('/api/user', getUser);
 router.post('/api/send-otp', sendOTP);
 router.post('/api/verify-otp', verifyOTP);
+router.post('/api/signup', signup);
+router.post('/api/login', login);
 
 module.exports = router;
