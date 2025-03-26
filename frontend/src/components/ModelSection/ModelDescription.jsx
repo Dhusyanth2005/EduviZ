@@ -14,7 +14,7 @@ function ModelDescription({ selectedPart, isDarkMode }) {
       const partInfo = bicycleData.parts[selectedPart] || {};
       const preloadData = async () => {
         try {
-          await axios.post('http://localhost:3001/preload', {
+          await axios.post('http://localhost:8080/preload', {
             data: {
               item: partInfo.name || 'Unknown Part',
               details: partInfo.manufacturing || 'No manufacturing info available.',
@@ -54,7 +54,7 @@ function ModelDescription({ selectedPart, isDarkMode }) {
     setChat([...chat, { sender: 'user', text: message }]);
 
     try {
-      const response = await axios.post('http://localhost:3001/chat', { message });
+      const response = await axios.post('http://localhost:8080/chat', { message });
       const botReply = response.data.reply;
 
       if (typeof botReply === 'string') {

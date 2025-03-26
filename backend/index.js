@@ -6,7 +6,7 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 require('dotenv').config();
 
 const app = express();
-const port = 3001;
+const port = 8080;
 
 const upload = multer({ storage: multer.memoryStorage() });
 let db, gfs;

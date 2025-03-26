@@ -18,13 +18,13 @@ export default function ModelPage() {
   const parts = Object.keys(bicycleData.parts);
 
   useEffect(() => {
-    const url = `http://localhost:3001/model/${bicycleData.fullviewModel}`;
+    const url = `http://localhost:8080/model/${bicycleData.fullviewModel}`;
     setModelSrc(url);
   }, []);
 
   const handlePartSelect = (part) => {
     const partFileId = bicycleData.parts[part].modelId;
-    const url = `http://localhost:3001/model/${partFileId}`;
+    const url = `http://localhost:8080/model/${partFileId}`;
     setModelSrc(url);
     setSelectedPart(part);
     setShowDetailView(true);
@@ -50,7 +50,7 @@ export default function ModelPage() {
   const handleBackClick = () => {
     setShowDetailView(false);
     setSelectedPart(null);
-    const url = `http://localhost:3001/model/${bicycleData.fullviewModel}`;
+    const url = `http://localhost:8080/model/${bicycleData.fullviewModel}`;
     setModelSrc(url);
   };
 
