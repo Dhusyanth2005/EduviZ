@@ -100,15 +100,21 @@ const LoginPage = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!formData.email || !formData.password) {
-      alert("Please fill all fields");
+  const handleGoogleLogin = () => {
+    const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3001";
+    if (!apiUrl) {
+      console.error("API URL is not configured");
+      alert("Configuration error. Please try again later.");
       return;
     }
-    console.log("Sign in attempt:", formData);
-    // Add your backend API call here for login
-    navigate("/dashboard"); // Redirect after successful login (adjust as needed)
+
+    try {
+      console.log("Initiating Google login with URL:", `${apiUrl}/auth/google`);
+      window.location.href = `${apiUrl}/auth/google`;
+    } catch (error) {
+      console.error("Error initiating Google login:", error);
+      alert("Failed to initiate Google login. Please try again.");
+    }
   };
 
   return (
@@ -116,10 +122,7 @@ const LoginPage = () => {
       <div className={styles.signupPage}>
         <div className={styles.signupContainer}>
           <div className={styles.modelBackground}>
-            <canvas
-              ref={canvasRef}
-              className={styles.particlesCanvas}
-            ></canvas>
+            <canvas ref={canvasRef} className={styles.particlesCanvas}></canvas>
             <div className={styles.modelGrid}></div>
           </div>
 
@@ -149,7 +152,7 @@ const LoginPage = () => {
                   <h2 className={styles.formTitle}>Sign In to EduViz</h2>
                   <p className={styles.formSubtitle}>Welcome back! Please sign in</p>
                 </div>
-                <form className={styles.signupForm} onSubmit={handleSubmit}>
+                <form className={styles.signupForm}>
                   <div className={styles.formGroup}>
                     <label className={styles.formLabel} htmlFor="email">
                       Email Address
@@ -187,7 +190,11 @@ const LoginPage = () => {
                     <div className={styles.dividerLine} />
                   </div>
                   <div className={styles.socialLogin}>
-                    <button type="button" className={styles.socialButton}>
+                    <button
+                      type="button"
+                      className={styles.socialButton}
+                      onClick={handleGoogleLogin}
+                    >
                       <span className={styles.socialIcon}>G</span>
                     </button>
                     <button type="button" className={styles.socialButton}>
@@ -198,8 +205,7 @@ const LoginPage = () => {
                     </button>
                   </div>
                   <div className={styles.signinLink}>
-                    Don’t have an account?{" "}
-                    <a href="/signup">Sign up</a>
+                    Don’t have an account? <a href="/signup">Sign up</a>
                   </div>
                 </form>
               </div>

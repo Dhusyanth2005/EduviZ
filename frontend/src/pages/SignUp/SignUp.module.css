@@ -447,6 +447,33 @@
   text-decoration: underline;
 }
 
+.successMessage {
+  color: #4CAF50;
+  font-size: 14px;
+  margin-top: 10px;
+  text-align: center;
+}
+
+.errorMessage {
+  color: #f44336;
+  font-size: 14px;
+  margin-top: 10px;
+  text-align: center;
+}
+
+.backButton {
+  background: none;
+  border: none;
+  color: #ae6df2;
+  cursor: pointer;
+  font-size: 14px;
+  text-decoration: underline;
+  margin-top: 10px;
+}
+
+.backButton:hover {
+  color: #8a4af3;
+}
 /* Animation */
 @keyframes fadeIn {
   from {

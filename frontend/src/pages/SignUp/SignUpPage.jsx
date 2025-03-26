@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import styles from "./SignUp.module.css"; // Reusing the same CSS
+import styles from "./SignUp.module.css";
+import axios from 'axios';
 
 const SignUpPage = () => {
   const canvasRef = useRef(null);
@@ -10,6 +11,11 @@ const SignUpPage = () => {
     password: "",
     termsAgree: false,
   });
+  const [otp, setOtp] = useState(''); // State for OTP input
+  const [showOtpInput, setShowOtpInput] = useState(false); // Toggle between signup and OTP form
+  const [message, setMessage] = useState(''); // Success message
+  const [error, setError] = useState(''); // Error message
+  const [loading, setLoading] = useState(false); // Loading state for API calls
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -102,20 +108,71 @@ const SignUpPage = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSendOTP = async (e) => {
     e.preventDefault();
-    if (
-      !formData.fullName ||
-      !formData.email ||
-      !formData.password ||
-      !formData.termsAgree
-    ) {
-      alert("Please fill all fields and agree to terms");
+    if (!formData.email) {
+      setError("Please enter your email address");
       return;
     }
-    console.log("Sign up successful:", formData);
-    // Add your backend API call here for signup
-    navigate("/RoleSelection"); // Redirect after successful signup
+    if (!formData.termsAgree) {
+      setError("You must agree to the Terms of Service and Privacy Policy");
+      return;
+    }
+    setLoading(true);
+    setError('');
+    setMessage('');
+
+    try {
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/send-otp`, {
+        email: formData.email,
+      });
+      setMessage('OTP sent successfully! Please check your email.');
+      setShowOtpInput(true);
+    } catch (error) {
+      setError(error.response?.data?.error || 'Failed to send OTP');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOTP = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    setMessage('');
+
+    try {
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/verify-otp`, {
+        email: formData.email,
+        otp,
+      });
+      setMessage('Email verified successfully!');
+      // Proceed to the next step after OTP verification
+      setTimeout(() => {
+        navigate("/RoleSelection");
+      }, 1500); // Redirect after 1.5 seconds to show the success message
+    } catch (error) {
+      setError(error.response?.data?.error || 'Failed to verify OTP');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSignUp = () => {
+    const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8080"; // Updated port to 8080
+    if (!apiUrl) {
+      console.error("API URL is not configured");
+      alert("Configuration error. Please try again later.");
+      return;
+    }
+
+    try {
+      console.log("Initiating Google signup with URL:", `${apiUrl}/auth/google`);
+      window.location.href = `${apiUrl}/auth/google`;
+    } catch (error) {
+      console.error("Error initiating Google signup:", error);
+      alert("Failed to initiate Google signup. Please try again.");
+    }
   };
 
   return (
@@ -123,10 +180,7 @@ const SignUpPage = () => {
       <div className={styles.signupPage}>
         <div className={styles.signupContainer}>
           <div className={styles.modelBackground}>
-            <canvas
-              ref={canvasRef}
-              className={styles.particlesCanvas}
-            ></canvas>
+            <canvas ref={canvasRef} className={styles.particlesCanvas}></canvas>
             <div className={styles.modelGrid}></div>
           </div>
 
@@ -193,93 +247,140 @@ const SignUpPage = () => {
               </div>
 
               <div className={styles.signupFormContainer}>
-                <div className={styles.formDecoration + " " + styles.formDecoration1} />
-                <div className={styles.formDecoration + " " + styles.formDecoration2} />
+                <div className={`${styles.formDecoration} ${styles.formDecoration1}`} />
+                <div className={`${styles.formDecoration} ${styles.formDecoration2}`} />
                 <div className={styles.formHeader}>
                   <h2 className={styles.formTitle}>Create Your EduViz Account</h2>
                   <p className={styles.formSubtitle}>Start learning today by signing up</p>
                 </div>
-                <form className={styles.signupForm} onSubmit={handleSubmit}>
-                  <div className={styles.formGroup}>
-                    <label className={styles.formLabel} htmlFor="fullName">
-                      Full Name
-                    </label>
-                    <input
-                      type="text"
-                      className={styles.formControl}
-                      id="fullName"
-                      name="fullName"
-                      value={formData.fullName}
-                      onChange={handleInputChange}
-                      placeholder="Enter your full name"
-                    />
-                  </div>
-                  <div className={styles.formGroup}>
-                    <label className={styles.formLabel} htmlFor="email">
-                      Email Address
-                    </label>
-                    <input
-                      type="email"
-                      className={styles.formControl}
-                      id="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      placeholder="Enter your email address"
-                    />
-                  </div>
-                  <div className={styles.formGroup}>
-                    <label className={styles.formLabel} htmlFor="password">
-                      Password
-                    </label>
-                    <input
-                      type="password"
-                      className={styles.formControl}
-                      id="password"
-                      name="password"
-                      value={formData.password}
-                      onChange={handleInputChange}
-                      placeholder="Create a strong password"
-                    />
-                  </div>
-                  <div className={styles.formCheckbox}>
-                    <input
-                      type="checkbox"
-                      className={styles.checkboxInput}
-                      id="termsAgree"
-                      name="termsAgree"
-                      checked={formData.termsAgree}
-                      onChange={handleInputChange}
-                    />
-                    <label className={styles.checkboxLabel} htmlFor="termsAgree">
-                      I agree to the <a href="#">Terms of Service</a> and{" "}
-                      <a href="#">Privacy Policy</a>
-                    </label>
-                  </div>
-                  <button type="submit" className={styles.signupButton}>
-                    <span>Sign Up</span>
-                  </button>
-                  <div className={styles.orDivider}>
-                    <div className={styles.dividerLine} />
-                    <span className={styles.dividerText}>OR</span>
-                    <div className={styles.dividerLine} />
-                  </div>
-                  <div className={styles.socialLogin}>
-                    <button type="button" className={styles.socialButton}>
-                      <span className={styles.socialIcon}>G</span>
+                {!showOtpInput ? (
+                  <form className={styles.signupForm} onSubmit={handleSendOTP}>
+                    <div className={styles.formGroup}>
+                      <label className={styles.formLabel} htmlFor="fullName">
+                        Full Name
+                      </label>
+                      <input
+                        type="text"
+                        className={styles.formControl}
+                        id="fullName"
+                        name="fullName"
+                        value={formData.fullName}
+                        onChange={handleInputChange}
+                        placeholder="Enter your full name"
+                        required
+                      />
+                    </div>
+                    <div className={styles.formGroup}>
+                      <label className={styles.formLabel} htmlFor="email">
+                        Email Address
+                      </label>
+                      <input
+                        type="email"
+                        className={styles.formControl}
+                        id="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        placeholder="Enter your email address"
+                        required
+                      />
+                    </div>
+                    <div className={styles.formGroup}>
+                      <label className={styles.formLabel} htmlFor="password">
+                        Password
+                      </label>
+                      <input
+                        type="password"
+                        className={styles.formControl}
+                        id="password"
+                        name="password"
+                        value={formData.password}
+                        onChange={handleInputChange}
+                        placeholder="Create a strong password"
+                        required
+                      />
+                    </div>
+                    <div className={styles.formCheckbox}>
+                      <input
+                        type="checkbox"
+                        className={styles.checkboxInput}
+                        id="termsAgree"
+                        name="termsAgree"
+                        checked={formData.termsAgree}
+                        onChange={handleInputChange}
+                        required
+                      />
+                      <label className={styles.checkboxLabel} htmlFor="termsAgree">
+                        I agree to the <a href="#">Terms of Service</a> and{" "}
+                        <a href="#">Privacy Policy</a>
+                      </label>
+                    </div>
+                    <button type="submit" className={styles.signupButton} disabled={loading}>
+                      <span>{loading ? 'Sending OTP...' : 'Send OTP'}</span>
                     </button>
-                    <button type="button" className={styles.socialButton}>
-                      <span className={styles.socialIcon}>f</span>
+                    {message && <div className={styles.successMessage}>{message}</div>}
+                    {error && <div className={styles.errorMessage}>{error}</div>}
+                    <div className={styles.orDivider}>
+                      <div className={styles.dividerLine} />
+                      <span className={styles.dividerText}>OR</span>
+                      <div className={styles.dividerLine} />
+                    </div>
+                    <div className={styles.socialLogin}>
+                      <button
+                        type="button"
+                        className={styles.socialButton}
+                        onClick={handleGoogleSignUp}
+                      >
+                        <span className={styles.socialIcon}>G</span>
+                      </button>
+                      <button type="button" className={styles.socialButton}>
+                        <span className={styles.socialIcon}>f</span>
+                      </button>
+                      <button type="button" className={styles.socialButton}>
+                        <span className={styles.socialIcon}>in</span>
+                      </button>
+                    </div>
+                    <div className={styles.signinLink}>
+                      Already have an account? <a href="/login">Sign in</a>
+                    </div>
+                  </form>
+                ) : (
+                  <form className={styles.signupForm} onSubmit={handleVerifyOTP}>
+                    <div className={styles.formGroup}>
+                      <label className={styles.formLabel} htmlFor="otp">
+                        Enter Verification Code
+                      </label>
+                      <input
+                        type="text"
+                        className={styles.formControl}
+                        id="otp"
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value)}
+                        placeholder="Enter the code sent to your email"
+                        required
+                      />
+                    </div>
+                    <button type="submit" className={styles.signupButton} disabled={loading}>
+                      <span>{loading ? 'Verifying...' : 'Verify OTP'}</span>
                     </button>
-                    <button type="button" className={styles.socialButton}>
-                      <span className={styles.socialIcon}>in</span>
-                    </button>
-                  </div>
-                  <div className={styles.signinLink}>
-                    Already have an account?{" "}
-                    <a href="/login">Sign in</a>
-                  </div>
-                </form>
+                    {message && <div className={styles.successMessage}>{message}</div>}
+                    {error && <div className={styles.errorMessage}>{error}</div>}
+                    <div className={styles.signinLink}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowOtpInput(false);
+                          setOtp('');
+                          setMessage('');
+                          setError('');
+                        }}
+                        className={styles.backButton}
+                      >
+                        Back to Sign Up
+                      </button>
+                    </div>
+                  </form>
+                )}
               </div>
             </div>
           </div>

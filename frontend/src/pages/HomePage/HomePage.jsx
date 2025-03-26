@@ -274,14 +274,6 @@ const HomePage = () => {
       </section>
 
       <section className={styles.ctaSection}>
-        {/* Adding the HeroSection-like background */}
-        <div className={styles.heroBackground}>
-          <div className={`${styles.shape} ${styles.shape1}`}></div>
-          <div className={`${styles.shape} ${styles.shape2}`}></div>
-          <div className={`${styles.shape} ${styles.shape3}`}></div>
-          <div className={`${styles.shape} ${styles.shape4}`}></div>
-          <div className={styles.heroOverlay}></div>
-        </div>
         <div className={styles.container}>
           <div className={styles.ctaContent}>
             <h2 className={styles.ctaTitle}>Ready to Transform Your Learning Experience?</h2>

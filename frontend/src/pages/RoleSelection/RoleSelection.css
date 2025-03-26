@@ -51,6 +51,9 @@
     sans-serif;
   transition: background-color var(--transition-normal);
   color: var(--text-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Background States */
