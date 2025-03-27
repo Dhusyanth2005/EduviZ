@@ -180,6 +180,7 @@
   margin-bottom: 8px;
   background: linear-gradient(90deg, #6617cb, #cb218e);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
@@ -704,6 +705,8 @@
 }
 
 
+
+
 /* User Dropup Styles */
 .userDropupContainer {
   position: relative;
@@ -781,6 +784,12 @@
   background-color: #333;
   color: #f0f0f0;
 }
+
+
+
+
+
+
 /* User Dropup Header Styles */
 .userDropupHeader {
   padding: 16px;
@@ -843,6 +852,12 @@
   background-color: #333;
   margin: 8px 0;
 }
+
+
+
+
+
+
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
   .userDropupMenu {
@@ -941,5 +956,93 @@
 
   .mainContent {
     padding: 16px;
+  }
+}
+
+
+/* Settings Page Styles */
+.settingsPage {
+  background: #252525;
+  border-radius: 16px;
+  padding: 32px;
+}
+
+.settingsContainer {
+  display: flex;
+  gap: 32px;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 16px;
+  padding: 32px;
+}
+
+.profileImageContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.settingsForm {
+  flex-grow: 1;
+}
+
+.formSection {
+  margin-bottom: 24px;
+}
+
+.settingsInput {
+  width: 100%;
+  padding: 12px 16px;
+  background: #0a0a0a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  color: #f0f0f0;
+  margin-bottom: 16px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.settingsInput:focus {
+  outline: none;
+  border-color: #6617cb;
+  box-shadow: 0 0 0 2px rgba(102, 23, 203, 0.2);
+}
+
+.linkInputGroup {
+  display: flex;
+  margin-bottom: 16px;
+}
+
+.linkPrefix {
+  background: #0a0a0a;
+  border: 1px solid #333;
+  border-right: none;
+  padding: 12px 16px;
+  color: #b3b3b3;
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
+
+.settingsInputWithPrefix {
+  flex-grow: 1;
+  padding: 12px 16px;
+  background: #0a0a0a;
+  border: 1px solid #333;
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+  color: #f0f0f0;
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .settingsContainer {
+    flex-direction: column;
+    align-items: center;
   }
 }

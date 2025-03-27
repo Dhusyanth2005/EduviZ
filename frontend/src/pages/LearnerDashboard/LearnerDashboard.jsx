@@ -3,6 +3,7 @@ import styles from "./LearnerDashboard.module.css";
 import img from "../../images/img.jpg";
 import { useNavigate } from "react-router-dom";
 import UserDropdown from "./UserDropdown";
+import SettingsPage from "./SettingPage/SettingsPage";
 
 function LearnerDashboard() {
   const [activeMenuItem, setActiveMenuItem] = useState("Welcome");
@@ -372,9 +373,7 @@ function LearnerDashboard() {
           {activeMenuItem === "Forum" && (
             <p className={styles.placeholderText}>Community forum coming soon!</p>
           )}
-          {activeMenuItem === "Settings" && (
-            <p className={styles.placeholderText}>Settings content coming soon!</p>
-          )}
+          {activeMenuItem === "Settings" && <SettingsPage/>}
         </main>
       </div>
     </div>
