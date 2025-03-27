@@ -194,7 +194,48 @@ const SignUpPage = () => {
                 <p className={styles.signupSubtext}>
                   Access high-quality courses, interactive content, and expert guidance.
                 </p>
-                {/* Features section unchanged */}
+                <div className={styles.signupFeatures}>
+                  <div className={styles.featurePoint}>
+                    <div className={styles.featurePointIcon}>
+                      <span>📚</span>
+                    </div>
+                    <div className={styles.featurePointText}>
+                      <h3 className={styles.featurePointTitle}>
+                        Unlimited Course Access
+                      </h3>
+                      <p className={styles.featurePointDescription}>
+                        Get access to a variety of courses in different domains.
+                      </p>
+                    </div>
+                  </div>
+                  <div className={styles.featurePoint}>
+                    <div className={styles.featurePointIcon}>
+                      <span>🎯</span>
+                    </div>
+                    <div className={styles.featurePointText}>
+                      <h3 className={styles.featurePointTitle}>
+                        Personalized Learning Paths
+                      </h3>
+                      <p className={styles.featurePointDescription}>
+                        Customize your learning experience with AI-driven
+                        recommendations.
+                      </p>
+                    </div>
+                  </div>
+                  <div className={styles.featurePoint}>
+                    <div className={styles.featurePointIcon}>
+                      <span>💼</span>
+                    </div>
+                    <div className={styles.featurePointText}>
+                      <h3 className={styles.featurePointTitle}>
+                        Career-Oriented Training
+                      </h3>
+                      <p className={styles.featurePointDescription}>
+                        Gain skills that help you land jobs and internships.
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
               <div className={styles.signupFormContainer}>
                 <div className={`${styles.formDecoration} ${styles.formDecoration1}`} />
@@ -270,7 +311,9 @@ const SignUpPage = () => {
                       <button type="button" className={styles.socialButton} onClick={handleGoogleSignUp}>
                         <span className={styles.socialIcon}>G</span>
                       </button>
-                      {/* Other social buttons unchanged */}
+                      <button type="button" className={styles.socialButton}>
+                      <span className={styles.socialIcon}>in</span>
+                      </button>
                     </div>
                     <div className={styles.signinLink}>
                       Already have an account? <a href="/login">Sign in</a>

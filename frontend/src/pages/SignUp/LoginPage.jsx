@@ -202,7 +202,9 @@ const LoginPage = () => {
                     <button type="button" className={styles.socialButton} onClick={handleGoogleLogin}>
                       <span className={styles.socialIcon}>G</span>
                     </button>
-                    {/* Other social buttons unchanged */}
+                    <button type="button" className={styles.socialButton}>
+                      <span className={styles.socialIcon}>in</span>
+                    </button>
                   </div>
                   <div className={styles.signinLink}>
                     Don’t have an account? <a href="/signup">Sign up</a>

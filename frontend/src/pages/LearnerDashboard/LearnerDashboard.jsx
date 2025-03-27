@@ -1,6 +1,5 @@
-// src/pages/LearnerDashboard.js
 import React, { useState } from "react";
-import styles from "./LearnerDashboard.module.css"; // Import scoped styles
+import styles from "./LearnerDashboard.module.css";
 import img from "../../images/img.jpg";
 import { useNavigate } from "react-router-dom";
 
@@ -208,7 +207,7 @@ function LearnerDashboard() {
   );
 
   return (
-    <div className={styles.dashboardRoot}> {/* Added wrapper */}
+    <div className={styles.dashboardRoot}>
       <div className={styles.dashboardContainer}>
         <aside className={styles.sidebar}>
           <div className={styles.logoContainer}>
@@ -264,45 +263,6 @@ function LearnerDashboard() {
             <p className={styles.placeholderText}>Settings content coming soon!</p>
           )}
         </main>
-
-        <aside className={styles.rightPanel}>
-          <div className={styles.panelSection + " " + styles.notifications}>
-            <h3 className={styles.panelTitle}>Notifications</h3>
-            <div className={styles.notificationList}>
-              <div className={`${styles.notificationItem} ${styles.unread}`}>
-                <p className={styles.notificationText}>
-                  New 3D model available: Chemistry Lab
-                </p>
-                <span className={styles.notificationTime}>2 hours ago</span>
-              </div>
-              <div className={styles.notificationItem}>
-                <p className={styles.notificationText}>
-                  Your model received 100 new views!
-                </p>
-                <span className={styles.notificationTime}>Yesterday</span>
-              </div>
-            </div>
-          </div>
-
-          <div className={styles.panelSection + " " + styles.chat}>
-            <h3 className={styles.panelTitle}>EduViz Assistant</h3>
-            <div className={styles.chatMessages}>
-              <div className={styles.message + " " + styles.assistant}>
-                <p>How can I assist with your 3D models today?</p>
-              </div>
-            </div>
-            <form className={styles.chatForm}>
-              <input
-                type="text"
-                placeholder="Type your message..."
-                className={styles.chatInput}
-              />
-              <button type="submit" className={styles.chatSubmit}>
-                Send
-              </button>
-            </form>
-          </div>
-        </aside>
       </div>
     </div>
   );

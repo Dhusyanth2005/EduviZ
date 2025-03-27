@@ -20,7 +20,6 @@
 
 .sidebar {
     background: rgba(20, 20, 20, 0.95);
-    backdrop-filter: blur(10px);
     border-right: 1px solid rgba(51, 51, 51, 0.5);
     padding: 20px;
     display: flex;
@@ -75,7 +74,6 @@
 .menuButton.active {
     background: linear-gradient(90deg, #6617cb, #8a2be2);
     color: #fff;
-    box-shadow: 0 4px 15px rgba(102, 23, 203, 0.3);
 }
 
 .profilePreview {
@@ -98,6 +96,11 @@
     justify-content: center;
     border-radius: 50%;
     font-weight: 600;
+    transition: transform 0.3s ease;
+}
+
+.profileAvatar:hover {
+    transform: scale(1.1);
 }
 
 .profileName {
@@ -133,36 +136,17 @@
 
 .statCard {
     background: rgba(37, 37, 37, 0.8);
-    backdrop-filter: blur(8px);
     border-radius: 16px;
     padding: 24px;
     border: 1px solid rgba(51, 51, 51, 0.5);
     text-align: center;
     transition: all 0.4s ease;
-    position: relative;
-    overflow: hidden;
-}
-
-.statCard::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(102, 23, 203, 0.2) 0%, transparent 70%);
-    opacity: 0;
-    transition: opacity 0.4s ease;
-}
-
-.statCard:hover::before {
-    opacity: 1;
 }
 
 .statCard:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
-    border-color: rgba(102, 23, 203, 0.5);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    border-color: #6617cb;
 }
 
 .statCard h3 {
@@ -184,12 +168,10 @@
 
 .recentActivity {
     background: rgba(37, 37, 37, 0.8);
-    backdrop-filter: blur(8px);
     border-radius: 20px;
     padding: 28px;
     border: 1px solid rgba(51, 51, 51, 0.5);
     position: relative;
-    overflow: hidden;
 }
 
 .recentActivity::after {
@@ -227,8 +209,8 @@
 }
 
 .activityItem:hover {
-    transform: translateX(5px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
 }
 
 .activityIcon {
@@ -241,7 +223,6 @@
     justify-content: center;
     border-radius: 10px;
     font-weight: 700;
-    box-shadow: 0 4px 10px rgba(102, 23, 203, 0.3);
 }
 
 .activityDetails h4 {
@@ -270,37 +251,18 @@
 
 .modelCard {
     background: rgba(37, 37, 37, 0.85);
-    backdrop-filter: blur(8px);
     border-radius: 16px;
     padding: 24px;
     border: 1px solid rgba(51, 51, 51, 0.5);
     display: flex;
     flex-direction: column;
     transition: all 0.4s ease;
-    position: relative;
-    overflow: hidden;
-}
-
-.modelCard::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(102, 23, 203, 0.15) 0%, transparent 70%);
-    opacity: 0;
-    transition: opacity 0.4s ease;
-}
-
-.modelCard:hover::before {
-    opacity: 1;
 }
 
 .modelCard:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
-    border-color: rgba(102, 23, 203, 0.5);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    border-color: #6617cb;
 }
 
 .modelCardHeader {
@@ -355,11 +317,11 @@
 
 .createModelContainer {
     background: rgba(37, 37, 37, 0.85);
-    backdrop-filter: blur(8px);
     border-radius: 20px;
     padding: 36px;
     border: 1px solid rgba(51, 51, 51, 0.5);
     position: relative;
+    
 }
 
 .createModelContainer::after {
@@ -402,11 +364,12 @@
     transition: all 0.3s ease;
 }
 
+
+
 .formGroup input:focus,
 .formGroup textarea:focus,
 .formGroup select:focus {
     border-color: #6617cb;
-    box-shadow: 0 0 10px rgba(102, 23, 203, 0.3);
     outline: none;
 }
 
@@ -429,26 +392,6 @@
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-}
-
-.primaryButton::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    transition: width 0.6s ease, height 0.6s ease;
-}
-
-.primaryButton:hover::after {
-    width: 200%;
-    height: 200%;
 }
 
 .primaryButton:hover {
@@ -470,7 +413,6 @@
 .secondaryButton:hover {
     background: rgba(68, 68, 68, 0.9);
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
 
 .tertiaryButton {
@@ -488,7 +430,6 @@
     background: linear-gradient(90deg, #6617cb, #8a2be2);
     color: #f0f0f0;
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(102, 23, 203, 0.3);
 }
 
 .placeholderText {
@@ -501,21 +442,16 @@
     border: 1px solid rgba(51, 51, 51, 0.5);
 }
 
-/* Add these to your existing CSS file */
-
-/* Hide the default file input */
 .hiddenFileInput {
     display: none;
 }
 
-/* Container for the upload icon and file name */
 .uploadContainer {
     display: flex;
     align-items: center;
     gap: 16px;
 }
 
-/* Square upload icon */
 .uploadIcon {
     width: 50px;
     height: 50px;
@@ -529,15 +465,12 @@
     font-weight: 700;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 10px rgba(102, 23, 203, 0.3);
 }
 
 .uploadIcon:hover {
     transform: scale(1.05);
-    box-shadow: 0 6px 15px rgba(102, 23, 203, 0.4);
 }
 
-/* Style for the file name display */
 .fileName {
     font-size: 14px;
     color: #b3b3b3;
@@ -546,6 +479,7 @@
     border-radius: 8px;
     border: 1px solid rgba(51, 51, 51, 0.5);
 }
+
 /* Responsive adjustments */
 @media (max-width: 1024px) {
     .dashboardContainer {
@@ -563,4 +497,21 @@
     .modelGrid {
         grid-template-columns: 1fr;
     }
+}
+
+/* Animations and Hover Effects */
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(102, 23, 203, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(102, 23, 203, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(102, 23, 203, 0);
+    }
+}
+
+.modelCard:hover .modelCardActions button {
+    animation: pulse 1.5s infinite;
 }
