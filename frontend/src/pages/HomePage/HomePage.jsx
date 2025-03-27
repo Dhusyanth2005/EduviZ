@@ -1,5 +1,7 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Header from "../../components/Header/Header";
 import Footer from "../../components/Footer/Footer";
 import HeroSection from "../../components/HeroSection/HeroSection";
@@ -13,13 +15,152 @@ import {
 } from "react-icons/fa";
 import styles from "./HomePage.module.css";
 
+
+// Register ScrollTrigger plugin
+gsap.registerPlugin(ScrollTrigger);
+
 const HomePage = () => {
+  const homepageRef = useRef(null);
+  const sectionsRef = useRef([]);
+
+  useEffect(() => {
+    // Performance optimization: Batch animations and reduce DOM queries
+    const sections = sectionsRef.current.filter(section => section);
+
+    // Professional dark theme color palette
+    const professionalTheme = {
+      background: '#0A0A0F',
+      sectionBackground: '#0F1015',
+      textPrimary: '#E4E6EB',
+      textSecondary: '#8C8E94',
+      accent: '#3A7CA5',
+      border: 'rgba(255,255,255,0.05)'
+    };
+
+    // Global theme application
+    gsap.set('body', { 
+      backgroundColor: professionalTheme.background,
+      color: professionalTheme.textPrimary
+    });
+
+    // Create a single ScrollTrigger timeline for better performance
+    const masterTimeline = gsap.timeline({
+      scrollTrigger: {
+        trigger: homepageRef.current,
+        start: "top top",
+        end: "bottom bottom",
+      }
+    });
+
+    sections.forEach((section, index) => {
+      // Sophisticated section animation
+      const sectionAnimation = gsap.timeline({
+        scrollTrigger: {
+          trigger: section,
+          start: "top 80%",
+          toggleActions: "play none none reverse",
+        }
+      });
+
+      // Subtle section reveal
+      sectionAnimation.fromTo(section, 
+        { 
+          opacity: 0, 
+          y: 30, 
+          scale: 0.98,
+          backgroundColor: 'transparent',
+          borderTop: `1px solid ${professionalTheme.border}`
+        }, 
+        { 
+          opacity: 1, 
+          y: 0, 
+          scale: 1,
+          backgroundColor: professionalTheme.sectionBackground,
+          borderTop: `1px solid ${professionalTheme.accent}`,
+          duration: 0.8,
+          ease: "power2.out"
+        }
+      );
+
+      // Animate section children with refined approach
+      const children = section.querySelectorAll(
+        `.${styles.sectionHeader}, 
+        .${styles.featuresGrid} > *, 
+        .${styles.categoriesGrid} > *, 
+        .${styles.stepsContainer} > *, 
+        .${styles.modelsGrid} > *, 
+        .${styles.testimonialsGrid} > *, 
+        .${styles.ctaContent} > *`
+      );
+
+      sectionAnimation.fromTo(
+        children,
+        { 
+          opacity: 0, 
+          y: 40, 
+          rotationX: -10,
+          filter: 'blur(10px)'
+        },
+        {
+          opacity: 1,
+          y: 0,
+          rotationX: 0,
+          filter: 'blur(0px)',
+          color: professionalTheme.textPrimary,
+          duration: 0.7,
+          stagger: 0.1,
+          ease: "power2.out"
+        },
+        0.3
+      );
+
+      // Subtle hover and interaction effects
+      const interactiveElements = section.querySelectorAll(
+        `a, .${styles.btnPrimary}, .${styles.btnSecondary}, 
+        .${styles.featureCard}, .${styles.categoryCard}, 
+        .${styles.modelCard}`
+      );
+
+      // Add hover and subtle transition effects
+      interactiveElements.forEach(el => {
+        el.addEventListener('mouseenter', () => {
+          gsap.to(el, {
+            scale: 1.02,
+            boxShadow: `0 10px 20px rgba(58, 124, 165, 0.1)`,
+            duration: 0.3,
+            ease: "power1.out"
+          });
+        });
+
+        el.addEventListener('mouseleave', () => {
+          gsap.to(el, {
+            scale: 1,
+            boxShadow: 'none',
+            duration: 0.3,
+            ease: "power1.out"
+          });
+        });
+      });
+    });
+
+    // Cleanup function
+    return () => {
+      masterTimeline.kill();
+      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+    };
+  }, []);
+
+
+
   return (
-    <div className={styles.homepage}>
-      <Header />
+    <div className={styles.homepage} ref={homepageRef}>
+      <Header initialScrolled ={true} />
       <HeroSection />
 
-      <section className={styles.featuresSection}>
+      <section 
+        className={styles.featuresSection} 
+        ref={(el) => (sectionsRef.current[0] = el)}
+      >
         <div className={styles.container}>
           <div className={styles.sectionHeader}>
             <h2 className={styles.sectionTitle}>How EduViz Works</h2>
@@ -53,8 +194,10 @@ const HomePage = () => {
         </div>
       </section>
 
-      <section className={styles.categoriesSection}>
-        {/* Adding the HeroSection-like background */}
+      <section 
+        className={styles.categoriesSection} 
+        ref={(el) => (sectionsRef.current[1] = el)}
+      >
         <div className={styles.heroBackground}>
           <div className={`${styles.shape} ${styles.shape1}`}></div>
           <div className={`${styles.shape} ${styles.shape2}`}></div>
@@ -99,7 +242,10 @@ const HomePage = () => {
         </div>
       </section>
 
-      <section className={styles.howItWorksSection}>
+      <section 
+        className={styles.howItWorksSection} 
+        ref={(el) => (sectionsRef.current[2] = el)}
+      >
         <div className={styles.container}>
           <div className={styles.sectionHeader}>
             <h2 className={styles.sectionTitle}>How It Works</h2>
@@ -136,8 +282,10 @@ const HomePage = () => {
         </div>
       </section>
 
-      <section className={styles.featuredModelsSection}>
-        {/* Adding the HeroSection-like background */}
+      <section 
+        className={styles.featuredModelsSection} 
+        ref={(el) => (sectionsRef.current[3] = el)}
+      >
         <div className={styles.heroBackground}>
           <div className={`${styles.shape} ${styles.shape1}`}></div>
           <div className={`${styles.shape} ${styles.shape2}`}></div>
@@ -218,7 +366,10 @@ const HomePage = () => {
         </div>
       </section>
 
-      <section className={styles.testimonialsSection}>
+      <section 
+        className={styles.testimonialsSection} 
+        ref={(el) => (sectionsRef.current[4] = el)}
+      >
         <div className={styles.container}>
           <div className={styles.sectionHeader}>
             <h2 className={styles.sectionTitle}>What Our Users Say</h2>
@@ -273,7 +424,10 @@ const HomePage = () => {
         </div>
       </section>
 
-      <section className={styles.ctaSection}>
+      <section 
+        className={styles.ctaSection} 
+        ref={(el) => (sectionsRef.current[5] = el)}
+      >
         <div className={styles.container}>
           <div className={styles.ctaContent}>
             <h2 className={styles.ctaTitle}>Ready to Transform Your Learning Experience?</h2>

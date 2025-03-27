@@ -4,7 +4,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 18px 40px;
-  background-color: rgba(13, 12, 13, 0.6);
+  background-color: rgba(13, 12, 13, 0.505);
   position: fixed;
   top: 0;
   left: 0;
@@ -16,7 +16,7 @@
 }
 
 .headerWrapper.scrolled {
-  background-color: rgba(45, 45, 45, 0.95);
+  background-color: rgba(33, 29, 33, 0.603);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
   backdrop-filter: blur(10px);
   border-bottom: none;
