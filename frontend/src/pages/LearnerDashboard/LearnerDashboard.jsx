@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import styles from "./LearnerDashboard.module.css";
 import img from "../../images/img.jpg";
 import { useNavigate } from "react-router-dom";
+import UserDropdown from "./UserDropdown";
 
 function LearnerDashboard() {
   const [activeMenuItem, setActiveMenuItem] = useState("Welcome");
@@ -52,6 +53,59 @@ function LearnerDashboard() {
       views: "850",
       imageUrl: "/api/placeholder/200/120",
     },
+  ];
+
+  const marketplaceModels = [
+    {
+      id: 4,
+      title: "Molecular Structure Viewer",
+      price: "$29.99",
+      imageUrl: "/api/placeholder/200/120",
+      description: "Explore complex molecular and atomic structures",
+      category: "Chemistry",
+      difficulty: "Advanced",
+      isNew: true,
+    },
+    {
+      id: 5,
+      title: "Ecosystem Dynamics",
+      price: "$34.99",
+      imageUrl: "/api/placeholder/200/120",
+      description: "Interactive model of ecosystem interactions and biodiversity",
+      category: "Biology",
+      difficulty: "Intermediate",
+      isNew: false,
+    },
+    {
+      id: 6,
+      title: "Quantum Mechanics Simulator",
+      price: "$39.99",
+      imageUrl: "/api/placeholder/200/120",
+      description: "Visualize quantum mechanics principles and experiments",
+      category: "Physics",
+      difficulty: "Advanced",
+      isNew: true,
+    },
+    {
+      id: 7,
+      title: "Planetary Geology Explorer",
+      price: "$27.99",
+      imageUrl: "/api/placeholder/200/120",
+      description: "Explore geological formations across different planets",
+      category: "Astronomy",
+      difficulty: "Intermediate",
+      isNew: false,
+    },
+    {
+      id: 8,
+      title: "Neural Network Visualizer",
+      price: "$44.99",
+      imageUrl: "/api/placeholder/200/120",
+      description: "Interactive model of artificial neural network structures",
+      category: "Computer Science",
+      difficulty: "Advanced",
+      isNew: true,
+    }
   ];
 
   const learningProgress = {
@@ -206,6 +260,69 @@ function LearnerDashboard() {
     </div>
   );
 
+  const MarketplacePage = () => {
+    const [selectedCategory, setSelectedCategory] = useState("All");
+    const categories = ["All", "Biology", "Physics", "Chemistry", "Astronomy", "Computer Science"];
+
+    const filteredModels = selectedCategory === "All" 
+      ? marketplaceModels 
+      : marketplaceModels.filter(model => model.category === selectedCategory);
+
+    return (
+      <div className={styles.marketplacePage}>
+        <div className={styles.categoryFilter}>
+          {categories.map((category) => (
+            <button
+              key={category}
+              className={`${styles.categoryButton} ${selectedCategory === category ? styles.activeCategoryButton : ''}`}
+              onClick={() => setSelectedCategory(category)}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+
+        <div className={styles.marketplaceHeader}>
+          <h2 className={styles.sectionTitle}>3D Model Marketplace</h2>
+          <div className={styles.searchContainer}>
+            <input 
+              type="text" 
+              placeholder="Search models..." 
+              className={styles.searchInput}
+            />
+          </div>
+        </div>
+
+        <div className={styles.modelList}>
+          {filteredModels.map((model) => (
+            <div className={styles.modelCard} key={model.id}>
+              <div className={styles.modelImageContainer}>
+                <img
+                  src={model.imageUrl}
+                  alt={model.title}
+                  className={styles.modelImage}
+                />
+                {model.isNew && <span className={styles.modelBadge}>NEW</span>}
+                <span className={styles.difficultyBadge}>{model.difficulty}</span>
+              </div>
+              <div className={styles.modelContent}>
+                <h3 className={styles.modelTitle}>{model.title}</h3>
+                <p className={styles.modelDescription}>{model.description}</p>
+                <div className={styles.modelFooter}>
+                  <div className={styles.modelMetadata}>
+                    <span className={styles.modelCategory}>{model.category}</span>
+                    <p className={styles.modelPrice}>{model.price}</p>
+                  </div>
+                  <button className={styles.modelActionButton}>Details</button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className={styles.dashboardRoot}>
       <div className={styles.dashboardContainer}>
@@ -232,8 +349,8 @@ function LearnerDashboard() {
             </ul>
           </nav>
           <div className={styles.profilePreview}>
-            <div className={styles.profileAvatar}>JD</div>
-            <span className={styles.profileName}>John Doe</span>
+           
+            <UserDropdown />
           </div>
         </aside>
 
@@ -251,11 +368,7 @@ function LearnerDashboard() {
 
           {activeMenuItem === "Welcome" && <WelcomePage />}
           {activeMenuItem === "My Models" && <ModelViewer />}
-          {activeMenuItem === "Marketplace" && (
-            <p className={styles.placeholderText}>
-              Browse and purchase 3D models coming soon!
-            </p>
-          )}
+          {activeMenuItem === "Marketplace" && <MarketplacePage />}
           {activeMenuItem === "Forum" && (
             <p className={styles.placeholderText}>Community forum coming soon!</p>
           )}
