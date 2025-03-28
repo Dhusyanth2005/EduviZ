@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import styles from "./LearnerDashboard.module.css";
 import img from "../../images/img.jpg";
 import { useNavigate } from "react-router-dom";
-import UserDropdown from "./UserDropdown";
+
 import SettingsPage from "./SettingPage/SettingsPage";
 
 function LearnerDashboard() {
@@ -11,7 +11,9 @@ function LearnerDashboard() {
   const handleMenuClick = (menuItem) => {
     setActiveMenuItem(menuItem);
   };
-
+ const handlebuttonmodelroute =()=>{
+    setActiveMenuItem("Marketplace")
+ }
   const recommendedModels = [
     {
       id: 1,
@@ -170,7 +172,7 @@ function LearnerDashboard() {
       <div className={styles.recommendedSection}>
         <div className={styles.sectionHeader}>
           <h2 className={styles.sectionTitle}>Recommended 3D Models</h2>
-          <button className={styles.textButton}>Browse Marketplace</button>
+          <button className={styles.textButton} onClick={handlebuttonmodelroute}>Browse Marketplace</button>
         </div>
         <div className={styles.modelList}>
           {recommendedModels.map((model) => (
@@ -254,7 +256,7 @@ function LearnerDashboard() {
             <h3 className={styles.modelTitle}>{model.title}</h3>
             <p className={styles.modelDetails}>Created: {model.created}</p>
             <p className={styles.modelStatus}>Views: {model.views}</p>
-            <button className={styles.modelActionButton}>Edit Model</button>
+            <button className={styles.modelActionButton}>Start Learning</button>
           </div>
         ))}
       </div>
@@ -349,10 +351,7 @@ function LearnerDashboard() {
               )}
             </ul>
           </nav>
-          <div className={styles.profilePreview}>
-           
-            <UserDropdown />
-          </div>
+         
         </aside>
 
         <main className={styles.mainContent}>
@@ -362,7 +361,7 @@ function LearnerDashboard() {
             )}
             {activeMenuItem === "My Models" && (
               <div className={styles.headerActions}>
-                <button className={styles.actionButton}>Upload New Model</button>
+                <button className={styles.modelActionButton} onClick={handlebuttonmodelroute}>Explore more</button>
               </div>
             )}
           </header>
