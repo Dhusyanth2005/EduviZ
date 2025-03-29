@@ -1,9 +1,10 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import Header from "../../components/Header/Header";
+import { scroller } from "react-scroll"; // Import scroller from react-scroll
 import Footer from "../../components/Footer/Footer";
+import FeatureSection from "../../components/FeatureSection/FeatureSection";
 import HeroSection from "../../components/HeroSection/HeroSection";
 import {
   FaGraduationCap,
@@ -15,188 +16,404 @@ import {
 } from "react-icons/fa";
 import styles from "./HomePage.module.css";
 
-
 // Register ScrollTrigger plugin
 gsap.registerPlugin(ScrollTrigger);
 
 const HomePage = () => {
   const homepageRef = useRef(null);
-  const sectionsRef = useRef([]);
+  const headerRef = useRef(null);
+  const navLinksRef = useRef([]);
+  const authButtonsRef = useRef(null);
+  
+  // Refs for sections to scroll to
+  const featuresRef = useRef(null);
+  const categoriesRef = useRef(null);
+  const howItWorksRef = useRef(null);
+  const featuredModelsRef = useRef(null);
+  const testimonialsRef = useRef(null);
+  const ctaRef = useRef(null);
+  
+  // State for header styling
+  const [scrolled, setScrolled] = useState(false);
+  const [isHidden, setIsHidden] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const isLoggedIn = false;
+  
+  // Track last scroll position to determine scroll direction
+  const lastScrollPositionRef = useRef(0);
+  
+  // New scroll function using react-scroll
+  const scrollToSection = (sectionId) => {
+    scroller.scrollTo(sectionId, {
+      duration: 800,
+      delay: 0,
+      smooth: 'easeInOutQuart',
+      offset: -80 // Offset for header height
+    });
+  };
 
   useEffect(() => {
-    // Performance optimization: Batch animations and reduce DOM queries
-    const sections = sectionsRef.current.filter(section => section);
-
-    // Professional dark theme color palette
-    const professionalTheme = {
-      background: '#0A0A0F',
-      sectionBackground: '#0F1015',
-      textPrimary: '#E4E6EB',
-      textSecondary: '#8C8E94',
-      accent: '#3A7CA5',
-      border: 'rgba(255,255,255,0.05)'
-    };
-
-    // Global theme application
-    gsap.set('body', { 
-      backgroundColor: professionalTheme.background,
-      color: professionalTheme.textPrimary
-    });
-
-    // Create a single ScrollTrigger timeline for better performance
-    const masterTimeline = gsap.timeline({
-      scrollTrigger: {
-        trigger: homepageRef.current,
-        start: "top top",
-        end: "bottom bottom",
-      }
-    });
-
-    sections.forEach((section, index) => {
-      // Sophisticated section animation
-      const sectionAnimation = gsap.timeline({
-        scrollTrigger: {
-          trigger: section,
-          start: "top 80%",
-          toggleActions: "play none none reverse",
+    // Scroll effect for header
+    const handleScroll = () => {
+      const currentScrollPosition = window.scrollY;
+      
+      // Determine scroll direction
+      if (currentScrollPosition > lastScrollPositionRef.current) {
+        // Scrolling down
+        if (currentScrollPosition > 50) {
+          setIsHidden(true);
+          setScrolled(true);
+          gsap.to(headerRef.current, {
+            y: '-100%', // Move header off-screen
+            backgroundColor: 'rgba(15, 16, 21, 0.9)',
+            backdropFilter: 'blur(10px)',
+            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+            duration: 0.3
+          });
         }
-      });
+      } else {
+        // Scrolling up
+        setIsHidden(false);
+        gsap.to(headerRef.current, {
+          y: '0%', // Bring header back
+          backgroundColor: currentScrollPosition > 50 
+            ? 'rgba(15, 16, 21, 0.9)' 
+            : 'transparent',
+          backdropFilter: currentScrollPosition > 50 ? 'blur(10px)' : 'blur(0px)',
+          boxShadow: currentScrollPosition > 50 
+            ? '0 4px 6px rgba(0,0,0,0.1)' 
+            : 'none',
+          duration: 0.3
+        });
 
-      // Subtle section reveal
-      sectionAnimation.fromTo(section, 
-        { 
-          opacity: 0, 
-          y: 30, 
-          scale: 0.98,
-          backgroundColor: 'transparent',
-          borderTop: `1px solid ${professionalTheme.border}`
-        }, 
+        // Update scrolled state based on scroll position
+        if (currentScrollPosition > 50) {
+          setScrolled(true);
+        } else {
+          setScrolled(false);
+        }
+      }
+
+      // Set last scroll position
+      lastScrollPositionRef.current = currentScrollPosition;
+    };
+    
+    // Initial header animation
+    const animateHeader = () => {
+      // Animate logo
+      gsap.fromTo(
+        headerRef.current.querySelector(`.${styles.logo}`),
+        { opacity: 0, x: -50 },
+        { opacity: 1, x: 0, duration: 0.6, ease: "power2.out" }
+      );
+
+      // Animate nav links
+      gsap.fromTo(
+        navLinksRef.current,
+        { opacity: 0, y: -20 },
         { 
           opacity: 1, 
           y: 0, 
-          scale: 1,
-          backgroundColor: professionalTheme.sectionBackground,
-          borderTop: `1px solid ${professionalTheme.accent}`,
-          duration: 0.8,
-          ease: "power2.out"
+          duration: 0.6, 
+          stagger: 0.1, 
+          ease: "power2.out" 
         }
       );
 
-      // Animate section children with refined approach
-      const children = section.querySelectorAll(
-        `.${styles.sectionHeader}, 
-        .${styles.featuresGrid} > *, 
-        .${styles.categoriesGrid} > *, 
-        .${styles.stepsContainer} > *, 
-        .${styles.modelsGrid} > *, 
-        .${styles.testimonialsGrid} > *, 
-        .${styles.ctaContent} > *`
+      // Animate auth buttons
+      gsap.fromTo(
+        authButtonsRef.current,
+        { opacity: 0, x: 50 },
+        { opacity: 1, x: 0, duration: 0.6, ease: "power2.out" }
       );
+    };
 
-      sectionAnimation.fromTo(
-        children,
-        { 
-          opacity: 0, 
-          y: 40, 
-          rotationX: -10,
-          filter: 'blur(10px)'
-        },
-        {
-          opacity: 1,
-          y: 0,
-          rotationX: 0,
-          filter: 'blur(0px)',
-          color: professionalTheme.textPrimary,
-          duration: 0.7,
-          stagger: 0.1,
-          ease: "power2.out"
-        },
-        0.3
-      );
+    // Create section animations
+    const setupSectionAnimations = () => {
+      // Professional dark theme color palette
+      const professionalTheme = {
+        background: '#0A0A0F',
+        sectionBackground: '#0F1015',
+        textPrimary: '#E4E6EB',
+        textSecondary: '#8C8E94',
+        accent: '#3A7CA5',
+        border: 'rgba(255,255,255,0.05)'
+      };
 
-      // Subtle hover and interaction effects
-      const interactiveElements = section.querySelectorAll(
-        `a, .${styles.btnPrimary}, .${styles.btnSecondary}, 
-        .${styles.featureCard}, .${styles.categoryCard}, 
-        .${styles.modelCard}`
-      );
-
-      // Add hover and subtle transition effects
-      interactiveElements.forEach(el => {
-        el.addEventListener('mouseenter', () => {
-          gsap.to(el, {
-            scale: 1.02,
-            boxShadow: `0 10px 20px rgba(58, 124, 165, 0.1)`,
-            duration: 0.3,
-            ease: "power1.out"
-          });
+      // Global theme application
+      gsap.set('body', { 
+        backgroundColor: professionalTheme.background,
+        color: professionalTheme.textPrimary
+      });
+      
+      // Collect all section refs
+      const sectionRefs = [
+        featuresRef, 
+        categoriesRef, 
+        howItWorksRef, 
+        featuredModelsRef, 
+        testimonialsRef, 
+        ctaRef
+      ];
+      
+      // Create animations for each section
+      sectionRefs.forEach((sectionRef, index) => {
+        if (!sectionRef.current) return;
+        
+        // Sophisticated section animation
+        const sectionAnimation = gsap.timeline({
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: "top 80%",
+            toggleActions: "play none none reverse",
+          }
         });
 
-        el.addEventListener('mouseleave', () => {
-          gsap.to(el, {
+        // Subtle section reveal
+        sectionAnimation.fromTo(sectionRef.current, 
+          { 
+            opacity: 0, 
+            y: 30, 
+            scale: 0.98,
+            backgroundColor: 'transparent',
+            borderTop: `1px solid ${professionalTheme.border}`
+          }, 
+          { 
+            opacity: 1, 
+            y: 0, 
             scale: 1,
-            boxShadow: 'none',
-            duration: 0.3,
-            ease: "power1.out"
+            backgroundColor: professionalTheme.sectionBackground,
+            borderTop: `1px solid ${professionalTheme.accent}`,
+            duration: 0.8,
+            ease: "power2.out"
+          }
+        );
+
+        // Animate section children with refined approach
+        const children = sectionRef.current.querySelectorAll(
+          `.${styles.sectionHeader}, 
+          .${styles.featuresGrid} > *, 
+          .${styles.categoriesGrid} > *, 
+          .${styles.stepsContainer} > *, 
+          .${styles.modelsGrid} > *, 
+          .${styles.testimonialsGrid} > *, 
+          .${styles.ctaContent} > *`
+        );
+
+        sectionAnimation.fromTo(
+          children,
+          { 
+            opacity: 0, 
+            y: 40, 
+            rotationX: -10,
+            filter: 'blur(10px)'
+          },
+          {
+            opacity: 1,
+            y: 0,
+            rotationX: 0,
+            filter: 'blur(0px)',
+            color: professionalTheme.textPrimary,
+            duration: 0.7,
+            stagger: 0.1,
+            ease: "power2.out"
+          },
+          0.3
+        );
+
+        // Subtle hover and interaction effects
+        const interactiveElements = sectionRef.current.querySelectorAll(
+          `a, .${styles.btnPrimary}, .${styles.btnSecondary}, 
+          .${styles.featureCard}, .${styles.categoryCard}, 
+          .${styles.modelCard}`
+        );
+
+        // Add hover effects
+        interactiveElements.forEach(el => {
+          el.addEventListener('mouseenter', () => {
+            gsap.to(el, {
+              scale: 1.02,
+              boxShadow: `0 10px 20px rgba(58, 124, 165, 0.1)`,
+              duration: 0.3,
+              ease: "power1.out"
+            });
+          });
+
+          el.addEventListener('mouseleave', () => {
+            gsap.to(el, {
+              scale: 1,
+              boxShadow: 'none',
+              duration: 0.3,
+              ease: "power1.out"
+            });
           });
         });
       });
-    });
+    };
 
-    // Cleanup function
+    // Add event listeners
+    window.addEventListener("scroll", handleScroll);
+    
+    // Run initial animations
+    animateHeader();
+    setupSectionAnimations();
+
+    // Cleanup
     return () => {
-      masterTimeline.kill();
+      window.removeEventListener("scroll", handleScroll);
       ScrollTrigger.getAll().forEach(trigger => trigger.kill());
     };
   }, []);
 
-
+  // Dropdown animation
+  useEffect(() => {
+    if (dropdownOpen) {
+      gsap.fromTo(
+        `.${styles.dropdown}`,
+        { opacity: 0, y: -20, scale: 0.95 },
+        { 
+          opacity: 1, 
+          y: 0, 
+          scale: 1, 
+          duration: 0.3, 
+          ease: "power2.out" 
+        }
+      );
+    }
+  }, [dropdownOpen]);
 
   return (
     <div className={styles.homepage} ref={homepageRef}>
-      <Header initialScrolled ={true} />
+      {/* Integrated Header */}
+      <header 
+        ref={headerRef} 
+        className={`${styles.headerWrapper} 
+          ${scrolled ? styles.scrolled : ""} 
+          ${isHidden ? styles.hidden : ""}`}
+      >
+        <Link to="/">
+          <div className={styles.logo}>EduViz</div>
+        </Link>
+
+        <nav className={styles.navLinks}>
+          {[
+            { label: "Home", onClick: () => window.scrollTo({ top: 0, behavior: 'smooth' }) },
+            { label: "Features", onClick: () => scrollToSection("features-section") },
+            { label: "Categories", onClick: () => scrollToSection("categories-section") },
+            { label: "How It Works", onClick: () => scrollToSection("how-it-works-section") },
+            { label: "Models", onClick: () => scrollToSection("featured-models-section") }
+          ].map((link, index) => (
+            <div 
+              key={link.label} 
+              ref={el => navLinksRef.current[index] = el}
+              className={styles.navLinkItem}
+            >
+              <button 
+                onClick={link.onClick}
+                className={styles.navButton}
+                onMouseEnter={(e) => {
+                  gsap.to(e.target, {
+                    color: '#3A7CA5', // Accent color on hover
+                    scale: 1.05,
+                    duration: 0.2
+                  });
+                }}
+                onMouseLeave={(e) => {
+                  gsap.to(e.target, {
+                    color: 'inherit',
+                    scale: 1,
+                    duration: 0.2
+                  });
+                }}
+              >
+                {link.label}
+              </button>
+            </div>
+          ))}
+        </nav>
+
+        {isLoggedIn ? (
+          <div className={styles.profileSection}>
+            <div
+              className={styles.profileIcon}
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+            >
+              👤
+            </div>
+            {dropdownOpen && (
+              <div className={styles.dropdown}>
+                {[
+                  { to: "/dashboard", label: "Dashboard" },
+                  { to: "/settings", label: "Settings" },
+                  { to: "/logout", label: "Logout" }
+                ].map((item) => (
+                  <div key={item.to} className={styles.dropdownItem}>
+                    <Link to={item.to}>{item.label}</Link>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div 
+            ref={authButtonsRef} 
+            className={styles.authButtons}
+          >
+            <Link to="/login">
+              <button 
+                className={styles.button}
+                onMouseEnter={(e) => {
+                  gsap.to(e.target, {
+                    backgroundColor: 'rgba(58, 124, 165, 0.1)',
+                    scale: 1.05,
+                    duration: 0.2
+                  });
+                }}
+                onMouseLeave={(e) => {
+                  gsap.to(e.target, {
+                    backgroundColor: 'transparent',
+                    scale: 1,
+                    duration: 0.2
+                  });
+                }}
+              >
+                Login
+              </button>
+            </Link>
+            <Link to="/signup">
+              <button 
+                className={`${styles.button} ${styles.primary}`}
+                onMouseEnter={(e) => {
+                  gsap.to(e.target, {
+                    backgroundColor: '#3A7CA5',
+                    scale: 1.05,
+                    duration: 0.2
+                  });
+                }}
+                onMouseLeave={(e) => {
+                  gsap.to(e.target, {
+                    backgroundColor: 'inherit',
+                    scale: 1,
+                    duration: 0.2
+                  });
+                }}
+              >
+                Sign Up
+              </button>
+            </Link>
+          </div>
+        )}
+      </header>
+
       <HeroSection />
 
-      <section 
-        className={styles.featuresSection} 
-        ref={(el) => (sectionsRef.current[0] = el)}
-      >
-        <div className={styles.container}>
-          <div className={styles.sectionHeader}>
-            <h2 className={styles.sectionTitle}>How EduViz Works</h2>
-            <p className={styles.sectionSubtitle}>
-              Our platform makes 3D learning accessible and engaging for everyone
-            </p>
-          </div>
-          <div className={styles.featuresGrid}>
-            <div className={styles.featureCard}>
-              <div className={styles.featureIcon}><FaCubes /></div>
-              <h3 className={styles.featureTitle}>Diverse 3D Models</h3>
-              <p className={styles.featureDescription}>
-                Explore thousands of interactive 3D models across engineering, medical, architectural, and educational categories.
-              </p>
-            </div>
-            <div className={styles.featureCard}>
-              <div className={styles.featureIcon}><FaLaptopCode /></div>
-              <h3 className={styles.featureTitle}>WebGL Technology</h3>
-              <p className={styles.featureDescription}>
-                Powered by Three.js for smooth and responsive 3D rendering directly in your browser without additional plugins.
-              </p>
-            </div>
-            <div className={styles.featureCard}>
-              <div className={styles.featureIcon}><FaGraduationCap /></div>
-              <h3 className={styles.featureTitle}>Interactive Learning</h3>
-              <p className={styles.featureDescription}>
-                Rotate, zoom, dissect, and interact with models to understand complex concepts through visual exploration.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Updated Features Section */}
+      <FeatureSection />
 
       <section 
+        id="categories-section" // Added id for react-scroll
         className={styles.categoriesSection} 
-        ref={(el) => (sectionsRef.current[1] = el)}
+        ref={categoriesRef}
       >
         <div className={styles.heroBackground}>
           <div className={`${styles.shape} ${styles.shape1}`}></div>
@@ -243,8 +460,9 @@ const HomePage = () => {
       </section>
 
       <section 
+        id="how-it-works-section" // Added id for react-scroll
         className={styles.howItWorksSection} 
-        ref={(el) => (sectionsRef.current[2] = el)}
+        ref={howItWorksRef}
       >
         <div className={styles.container}>
           <div className={styles.sectionHeader}>
@@ -283,8 +501,9 @@ const HomePage = () => {
       </section>
 
       <section 
+        id="featured-models-section" // Added id for react-scroll
         className={styles.featuredModelsSection} 
-        ref={(el) => (sectionsRef.current[3] = el)}
+        ref={featuredModelsRef}
       >
         <div className={styles.heroBackground}>
           <div className={`${styles.shape} ${styles.shape1}`}></div>
@@ -367,8 +586,9 @@ const HomePage = () => {
       </section>
 
       <section 
+        id="testimonials-section" // Added id for react-scroll
         className={styles.testimonialsSection} 
-        ref={(el) => (sectionsRef.current[4] = el)}
+        ref={testimonialsRef}
       >
         <div className={styles.container}>
           <div className={styles.sectionHeader}>
@@ -425,8 +645,9 @@ const HomePage = () => {
       </section>
 
       <section 
+        id="cta-section" // Added id for react-scroll
         className={styles.ctaSection} 
-        ref={(el) => (sectionsRef.current[5] = el)}
+        ref={ctaRef}
       >
         <div className={styles.container}>
           <div className={styles.ctaContent}>
