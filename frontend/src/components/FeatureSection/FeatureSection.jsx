@@ -754,12 +754,15 @@ const moonMaterial = new THREE.MeshPhongMaterial({
       });
       
       // Animate sun flares
-      sun.userData.flares.forEach(flare => {
-        const pulse = Math.sin(time * flare.userData.pulseSpeed + flare.userData.pulseFactor * 10);
-        const scale = flare.userData.originalRadius * (1 + pulse * 0.2);
-        flare.scale.set(scale, scale, scale);
-        flare.material.opacity = 0.3 + pulse * 0.1;
-      });
+      const sunData = sun.userData;
+
+// Animate sun flares
+sun.rotation.y += sun.userData.rotationSpeed;
+
+
+// Make lens flare face camera
+sunData.lensFlare.lookAt(camera.position);
+
       
       // Animate dust particles
       universe.dustParticles.forEach(dust => {
