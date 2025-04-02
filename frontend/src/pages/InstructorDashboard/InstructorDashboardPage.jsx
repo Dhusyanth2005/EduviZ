@@ -1,14 +1,26 @@
 import React, { useState, useRef } from "react";
 import styles from "./InstructorDashboard.module.css";
+import SettingPage from "./SettingPage/SettingsPage";
+import WelcomePage from "./WelcomePage";
 import { useNavigate } from "react-router-dom";
 
-// Separate CreateModelForm component
+// Separate CreateModelForm component with enhanced features
 function CreateModelForm({ onModelCreated, onCancel }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
-  const [file, setFile] = useState(null);
-  const fileInputRef = useRef(null);
+  const [mainModel, setMainModel] = useState(null);
+  const [keyframes, setKeyframes] = useState(0);
+  const [framesPerSecond, setFramesPerSecond] = useState(24);
+  const [parts, setParts] = useState([]);
+  const [newPart, setNewPart] = useState({
+    title: "",
+    description: "",
+    model: null
+  });
+  
+  const mainModelInputRef = useRef(null);
+  const partModelInputRef = useRef(null);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -17,6 +29,10 @@ function CreateModelForm({ onModelCreated, onCancel }) {
       title,
       description,
       category,
+      mainModel: mainModel?.name || "No model uploaded",
+      keyframes,
+      framesPerSecond,
+      parts,
       createdAt: new Date().toLocaleDateString("en-US", {
         month: "long",
         day: "numeric",
@@ -30,67 +46,201 @@ function CreateModelForm({ onModelCreated, onCancel }) {
     setTitle("");
     setDescription("");
     setCategory("");
-    setFile(null);
+    setMainModel(null);
+    setKeyframes(0);
+    setFramesPerSecond(24);
+    setParts([]);
   };
 
-  const handleUploadClick = () => {
-    fileInputRef.current.click();
+  const handleUploadClick = (inputRef) => {
+    inputRef.current.click();
+  };
+
+  const handleAddPart = () => {
+    if (newPart.title && newPart.model) {
+      setParts([...parts, { ...newPart, id: Date.now() }]);
+      setNewPart({
+        title: "",
+        description: "",
+        model: null
+      });
+    }
+  };
+
+  const handleRemovePart = (partId) => {
+    setParts(parts.filter(part => part.id !== partId));
   };
 
   return (
     <div className={styles.createModelContainer}>
       <h2 className={styles.sectionTitle}>Create New 3D Model</h2>
       <form onSubmit={handleSubmit} className={styles.createModelForm}>
-        <div className={styles.formGroup}>
-          <label>Model Title</label>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Enter model title"
-            required
-            autoComplete="off"
-          />
-        </div>
-        <div className={styles.formGroup}>
-          <label>Description</label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Describe your 3D model"
-            required
-          />
-        </div>
-        <div className={styles.formGroup}>
-          <label>Category</label>
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            required
-          >
-            <option value="">Select Category</option>
-            <option value="Biology">Biology</option>
-            <option value="Chemistry">Chemistry</option>
-            <option value="Physics">Physics</option>
-            <option value="Mathematics">Mathematics</option>
-          </select>
-        </div>
-        <div className={styles.formGroup}>
-          <label>Upload 3D Model</label>
-          <div className={styles.uploadContainer}>
+        {/* Model Basic Information */}
+        <div className={styles.formSection}>
+          <h3 className={styles.formSectionTitle}>Basic Information</h3>
+          <div className={styles.formGroup}>
+            <label>Model Title</label>
             <input
-              type="file"
-              accept=".obj,.fbx,.stl"
-              onChange={(e) => setFile(e.target.files[0])}
-              ref={fileInputRef}
-              className={styles.hiddenFileInput}
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Enter model title"
+              required
+              autoComplete="off"
             />
-            <div className={styles.uploadIcon} onClick={handleUploadClick}>
-              <span>↑</span>
-            </div>
-            {file && <span className={styles.fileName}>{file.name}</span>}
+          </div>
+          <div className={styles.formGroup}>
+            <label>Description</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Describe your 3D model"
+              required
+            />
+          </div>
+          <div className={styles.formGroup}>
+            <label>Category</label>
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              required
+            >
+              <option value="">Select Category</option>
+              <option value="Biology">Biology</option>
+              <option value="Chemistry">Chemistry</option>
+              <option value="Physics">Physics</option>
+              <option value="Mathematics">Mathematics</option>
+            </select>
           </div>
         </div>
+
+        {/* Model Files */}
+        <div className={styles.formSection}>
+          <h3 className={styles.formSectionTitle}>Model Files</h3>
+          <div className={styles.formGroup}>
+            <label>Upload Main 3D Model</label>
+            <div className={styles.uploadContainer}>
+              <input
+                type="file"
+                accept=".glb,.gltf,.fbx,.obj"
+                onChange={(e) => setMainModel(e.target.files[0])}
+                ref={mainModelInputRef}
+                className={styles.hiddenFileInput}
+              />
+              <div className={styles.uploadIcon} onClick={() => handleUploadClick(mainModelInputRef)}>
+                <span>↑</span>
+              </div>
+              {mainModel && <span className={styles.fileName}>{mainModel.name}</span>}
+            </div>
+          </div>
+          <div className={styles.formRow}>
+            <div className={styles.formGroup}>
+              <label>Keyframes</label>
+              <input
+                type="number"
+                value={keyframes}
+                onChange={(e) => setKeyframes(parseInt(e.target.value) || 0)}
+                min="0"
+                placeholder="Number of keyframes"
+              />
+            </div>
+            <div className={styles.formGroup}>
+              <label>Frames Per Second</label>
+              <input
+                type="number"
+                value={framesPerSecond}
+                onChange={(e) => setFramesPerSecond(parseInt(e.target.value) || 24)}
+                min="1"
+                max="120"
+                placeholder="FPS"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Model Parts */}
+        <div className={styles.formSection}>
+          <h3 className={styles.formSectionTitle}>Model Parts</h3>
+          
+          {/* Add New Part Form */}
+          <div className={styles.addPartForm}>
+            <h4>Add New Part</h4>
+            <div className={styles.formGroup}>
+              <label>Part Title</label>
+              <input
+                type="text"
+                value={newPart.title}
+                onChange={(e) => setNewPart({...newPart, title: e.target.value})}
+                placeholder="Enter part title"
+              />
+            </div>
+            <div className={styles.formGroup}>
+              <label>Part Description</label>
+              <textarea
+                value={newPart.description}
+                onChange={(e) => setNewPart({...newPart, description: e.target.value})}
+                placeholder="Describe this part"
+              />
+            </div>
+            <div className={styles.formGroup}>
+              <label>Upload Part Model</label>
+              <div className={styles.uploadContainer}>
+                <input
+                  type="file"
+                  accept=".glb,.gltf,.fbx,.obj"
+                  onChange={(e) => setNewPart({...newPart, model: e.target.files[0]})}
+                  ref={partModelInputRef}
+                  className={styles.hiddenFileInput}
+                />
+                <div className={styles.uploadIcon} onClick={() => handleUploadClick(partModelInputRef)}>
+                  <span>↑</span>
+                </div>
+                {newPart.model && <span className={styles.fileName}>{newPart.model.name}</span>}
+              </div>
+            </div>
+            <button
+              type="button"
+              className={styles.secondaryButton}
+              onClick={handleAddPart}
+              disabled={!newPart.title || !newPart.model}
+            >
+              Add Part
+            </button>
+          </div>
+          
+          {/* Existing Parts List */}
+          {parts.length > 0 && (
+            <div className={styles.partsListContainer}>
+              <h4>Added Parts ({parts.length})</h4>
+              <div className={styles.partsList}>
+                {parts.map((part, index) => (
+                  <div key={part.id} className={styles.partCard}>
+                    <div className={styles.partCardHeader}>
+                      <span className={styles.partNumber}>{index + 1}</span>
+                      <h5 className={styles.partTitle}>{part.title}</h5>
+                      <button 
+                        type="button" 
+                        className={styles.removePartButton}
+                        onClick={() => handleRemovePart(part.id)}
+                        aria-label="Remove part"
+                      >
+                        ×
+                      </button>
+                    </div>
+                    <div className={styles.partCardBody}>
+                      <p className={styles.partDescription}>{part.description}</p>
+                      <div className={styles.partFile}>
+                        <span className={styles.fileIcon}>📄</span>
+                        <span className={styles.fileName}>{part.model.name}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
         <div className={styles.formActions}>
           <button type="submit" className={styles.primaryButton}>
             Create Model
@@ -116,6 +266,14 @@ function InstructorDashboard() {
       title: "Human Anatomy Explorer",
       description: "Detailed 3D model of human body systems",
       category: "Biology",
+      mainModel: "human_body.glb",
+      keyframes: 24,
+      framesPerSecond: 30,
+      parts: [
+        { id: 101, title: "Skeletal System", description: "Bones and joints", model: { name: "skeleton.glb" } },
+        { id: 102, title: "Muscular System", description: "Major muscle groups", model: { name: "muscles.glb" } },
+        { id: 103, title: "Circulatory System", description: "Heart and vessels", model: { name: "circulatory.glb" } }
+      ],
       createdAt: "March 15, 2025",
       views: 1245,
       isPublished: true,
@@ -125,6 +283,13 @@ function InstructorDashboard() {
       title: "Molecular Structure Visualizer",
       description: "Interactive 3D representation of chemical compounds",
       category: "Chemistry",
+      mainModel: "molecule_base.glb",
+      keyframes: 12,
+      framesPerSecond: 24,
+      parts: [
+        { id: 201, title: "Atoms", description: "Individual atoms", model: { name: "atoms.glb" } },
+        { id: 202, title: "Bonds", description: "Chemical bonds", model: { name: "bonds.glb" } }
+      ],
       createdAt: "March 20, 2025",
       views: 876,
       isPublished: false,
@@ -169,6 +334,12 @@ function InstructorDashboard() {
             {models.reduce((total, model) => total + model.views, 0)}
           </div>
         </div>
+        <div className={styles.statCard}>
+          <h3>Total Parts</h3>
+          <div className={styles.statValue}>
+            {models.reduce((total, model) => total + (model.parts?.length || 0), 0)}
+          </div>
+        </div>
       </div>
 
       <div className={styles.recentActivity}>
@@ -184,6 +355,7 @@ function InstructorDashboard() {
                 <p>
                   {model.isPublished ? "Published" : "Draft"} • {model.createdAt}
                 </p>
+                <small>{model.parts?.length || 0} parts</small>
               </div>
             </div>
           ))}
@@ -221,6 +393,7 @@ function InstructorDashboard() {
               <div className={styles.modelMetadata}>
                 <span>Created: {model.createdAt}</span>
                 <span>Views: {model.views}</span>
+                <span>Parts: {model.parts?.length || 0}</span>
               </div>
             </div>
             <div className={styles.modelCardActions}>
@@ -267,10 +440,7 @@ function InstructorDashboard() {
               ))}
             </ul>
           </nav>
-          <div className={styles.profilePreview}>
-            <div className={styles.profileAvatar}>JD</div>
-            <span className={styles.profileName}>John Doe</span>
-          </div>
+         
         </aside>
 
         <main className={styles.mainContent}>
@@ -280,7 +450,7 @@ function InstructorDashboard() {
             )}
           </header>
 
-          {activeMenuItem === "Dashboard" && <DashboardOverview />}
+          {activeMenuItem === "Dashboard" && <WelcomePage models={models} />}
           {activeMenuItem === "My Models" && <ModelManagement />}
           {activeMenuItem === "Create Model" && (
             <CreateModelForm
@@ -291,9 +461,7 @@ function InstructorDashboard() {
           {activeMenuItem === "Analytics" && (
             <p className={styles.placeholderText}>Analytics coming soon!</p>
           )}
-          {activeMenuItem === "Settings" && (
-            <p className={styles.placeholderText}>Settings coming soon!</p>
-          )}
+          {activeMenuItem === "Settings" && <SettingPage />}
         </main>
       </div>
     </div>

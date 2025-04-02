@@ -9,6 +9,8 @@
   color: #b3b3b3;
   line-height: 1.5;
   background: #0a0a0a;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(101, 23, 203, 0) rgba(26, 26, 26, 0.105);
 }
 
 /* Apply to all children to mimic * behavior within this scope */

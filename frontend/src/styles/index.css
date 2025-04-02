@@ -20,7 +20,7 @@ html, body {
 
   /* Firefox Scrollbar */
   scrollbar-width: thin;
-  scrollbar-color: var(--primary) var(--background-dark);
+scrollbar-color: rgba(101, 23, 203, 0.242) rgba(26, 26, 26, 0.105);
 }
 * {
   font-family: "Inter";

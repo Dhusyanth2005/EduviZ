@@ -8,6 +8,8 @@
     line-height: 1.5;
     background: #0a0a0a;
     overflow: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(101, 23, 203, 0) rgba(26, 26, 26, 0.105);
 }
 
 .dashboardContainer {
@@ -18,63 +20,78 @@
     position: relative;
 }
 
+/* Updated Sidebar Styles for InstructorDashboard */
 .sidebar {
-    background: rgba(20, 20, 20, 0.95);
-    border-right: 1px solid rgba(51, 51, 51, 0.5);
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+  background: #252525;
+  border-right: 1px solid #333;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
 }
 
 .logoContainer {
-    padding: 20px 0;
+  padding: 20px;
+  border-bottom: 1px solid #333;
+  text-align: center;
 }
 
 .logo {
-    font-size: 24px;
-    font-weight: 700;
-    background: linear-gradient(90deg, #6617cb, #cb17a3);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    text-align: center;
+  font-size: 20px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  background: linear-gradient(90deg, #6617cb, #cb17a3);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .sidebarNav {
-    flex-grow: 1;
+  padding: 16px 8px;
+  flex-grow: 1;
 }
 
 .menuList {
-    list-style: none;
-    padding: 0;
+  list-style: none;
+  padding: 0;
 }
 
 .menuItem {
-    margin: 10px 0;
+  margin-bottom: 8px;
 }
 
 .menuButton {
-    width: 100%;
-    padding: 12px 16px;
-    background: transparent;
-    border: none;
-    color: #b3b3b3;
-    text-align: left;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 12px 16px;
+  background: transparent;
+  border: none;
+  color: #b3b3b3;
+  text-align: left;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 15px;
 }
 
 .menuButton:hover {
-    background: rgba(102, 23, 203, 0.1);
-    color: #f0f0f0;
+  background: #333333;
+  color: #cb218e;
 }
 
 .menuButton.active {
-    background: linear-gradient(90deg, #6617cb, #8a2be2);
-    color: #fff;
+  background: #6617cb;
+  color: #f0f0f0;
+  font-weight: 500;
 }
+
+.menuText {
+  margin-left: 12px;
+}
+
 
 .profilePreview {
     display: flex;
@@ -343,6 +360,7 @@
 .formGroup {
     display: flex;
     flex-direction: column;
+    margin-bottom: 10px;
 }
 
 .formGroup label {
@@ -514,4 +532,657 @@
 
 .modelCard:hover .modelCardActions button {
     animation: pulse 1.5s infinite;
+}
+
+.partsListContainer {
+
+    background: rgba(37, 37, 37, 0.877);
+    border-radius: 20px;
+    padding: 28px;
+    border: 1px solid rgba(51, 51, 51, 0.5);
+    position: relative;
+    margin-bottom: 32px;
+    margin-top: 20px;
+}
+
+.partsListContainer::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, #6617cb, #cb17a3);
+    border-radius: 5px;
+}
+
+.partsListContainer h4 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #f0f0f0;
+    margin-bottom: 20px;
+}
+
+.partsList {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.partCard {
+    background: rgba(26, 26, 26, 0.9);
+    border-radius: 12px;
+    border: 1px solid rgba(51, 51, 51, 0.5);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.partCard:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    border-color: #6617cb;
+}
+
+.partCardHeader {
+    display: flex;
+    align-items: center;
+    padding: 14px 16px;
+    background: rgba(37, 37, 37, 0.9);
+    border-bottom: 1px solid rgba(51, 51, 51, 0.5);
+}
+
+.partNumber {
+    width: 26px;
+    height: 26px;
+    background: linear-gradient(135deg, #6617cb, #cb17a3);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-weight: 600;
+    font-size: 12px;
+    margin-right: 12px;
+}
+
+.partTitle {
+    flex-grow: 1;
+    font-size: 16px;
+    font-weight: 500;
+    color: #f0f0f0;
+    margin: 0;
+}
+
+.removePartButton {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(51, 51, 51, 0.8);
+    color: #f0f0f0;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.removePartButton:hover {
+    background: #e53935;
+    transform: scale(1.1);
+}
+
+.partCardBody {
+    padding: 16px;
+}
+
+.partDescription {
+    font-size: 14px;
+    color: #b3b3b3;
+    margin-bottom: 12px;
+}
+
+.partFile {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(20, 20, 20, 0.8);
+    border-radius: 8px;
+    width: fit-content;
+}
+
+.fileIcon {
+    font-size: 16px;
+}
+
+.fileName {
+    font-size: 13px;
+    color: #b3b3b3;
+}
+.largeAvatar {
+    width: 64px;
+    height: 64px;
+    font-size: 24px;
+  }/* Updated Welcome Page Styles - Dark Theme (Matching Learner Dashboard) */
+.welcomePage {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    padding-bottom: 32px;
+    color: #b3b3b3;
+  }
+  
+  .welcomeHero {
+    background: linear-gradient(to right, #6617cb22, #cb218e22);
+    border-radius: 16px;
+    padding: 32px;
+    display: flex;
+    gap: 32px;
+    border: 1px solid #333;
+    align-items: stretch;
+  }
+  
+  .welcomeIntro {
+    flex: 1.5;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  
+  .welcomeTitle {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    background: linear-gradient(90deg, #6617cb, #cb17a3);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  
+  .welcomeSubtitle {
+    font-size: 16px;
+    color: #b3b3b3;
+    margin-bottom: 24px;
+  }
+  
+  .progressContainer {
+    margin-bottom: 24px;
+  }
+  
+  .progressBar {
+    height: 8px;
+    background: #333;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    overflow: hidden;
+    border: 1px solid rgba(51, 51, 51, 0.5);
+  }
+  
+  .progressFill {
+    height: 100%;
+    background: linear-gradient(90deg, #6617cb, #cb17a3);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+  }
+  
+  .progressText {
+    font-size: 14px;
+    color: #b3b3b3;
+  }
+  
+  .upcomingCourse {
+    background: #1a1a1a;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #333;
+    transition: all 0.4s ease;
+  }
+  
+  .upcomingCourse:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    border-color: #6617cb;
+  }
+  
+  .upcomingCourse h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #f0f0f0;
+    margin-bottom: 16px;
+  }
+  
+  .coursePreview {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  
+  .coursePreviewIcon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #6617cb, #cb17a3);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  
+  .coursePreviewInfo {
+    flex: 1;
+  }
+  
+  .coursePreviewInfo h4 {
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #f0f0f0;
+    font-size: 15px;
+  }
+  
+  .statsOverview {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin-top: 24px;
+  }
+  
+  .statCard {
+    background: #1a1a1a;
+    border-radius: 12px;
+    padding: 32px;
+    text-align: center;
+    border: 1px solid #333;
+    cursor: pointer;
+    transition: all 0.4s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 1; /* Makes it square */
+    height: auto;
+  }
+  
+  .statValue {
+    font-size: 42px; /* Larger font size as shown in the image */
+    font-weight: 700;
+    margin-bottom: 8px;
+    background: linear-gradient(90deg, #6617cb, #cb17a3);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  
+  .statLabel {
+    font-size: 16px;
+    color: #b3b3b3;
+    font-weight: 400;
+  }
+  
+  .statCard:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    border-color: #6617cb;
+  }
+  
+  
+  
+  .statLabel {
+    font-size: 14px;
+    color: #b3b3b3;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  
+  /* Recent Models Section */
+  .recentModelsSection {
+    margin-top: 32px;
+    background: #252525;
+    border-radius: 16px;
+    padding: 24px;
+    border: 1px solid #333;
+  }
+  
+  .sectionHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+  
+  .sectionTitle {
+    font-size: 20px;
+    font-weight: 600;
+    color: #f0f0f0;
+  }
+  
+  .textButton {
+    background: transparent;
+    border: none;
+    color: #6617cb;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    font-size: 14px;
+  }
+  
+  .textButton:hover {
+    color: #cb17a3;
+    transform: translateY(-2px);
+  }
+  
+  .modelList {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+  }
+  
+  .modelCard {
+    border-radius: 12px;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    overflow: hidden;
+    transition: all 0.4s ease;
+  }
+  
+  .modelCard:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    border-color: #6617cb;
+  }
+  
+  .modelImageContainer {
+    position: relative;
+    height: 160px;
+    background: rgba(26, 26, 26, 0.9);
+  }
+  
+  .modelPlaceholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 36px;
+    font-weight: bold;
+    color: #fff;
+    background: linear-gradient(135deg, #6617cb, #cb17a3);
+  }
+  
+  .modelBadge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: linear-gradient(90deg, #f59e0b, #fbbf24);
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 6px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  }
+  
+  .modelBadge.published {
+    background: linear-gradient(90deg, #10b981, #34d399);
+  }
+  
+  .modelContent {
+    padding: 20px;
+  }
+  
+  .modelTitle {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #f0f0f0;
+  }
+  
+  .modelDescription {
+    font-size: 14px;
+    color: #b3b3b3;
+    margin-bottom: 16px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.4;
+  }
+  
+  .modelFooter {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .modelMetadata {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .modelCategory {
+    font-size: 12px;
+    color: #b3b3b3;
+    margin-bottom: 4px;
+  }
+  
+  .modelViews {
+    font-size: 12px;
+    color: #b3b3b3;
+  }
+  
+  .modelActionButton {
+    padding: 8px 16px;
+    background: linear-gradient(90deg, #6617cb, #8a2be2);
+    color: #f0f0f0;
+    border: none;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+  }
+  
+  .modelActionButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 23, 203, 0.4);
+  }
+  
+  /* Insights Section */
+  .insightsSection {
+    margin-top: 32px;
+    background: #252525;
+    border-radius: 16px;
+    padding: 24px;
+    border: 1px solid #333;
+  }
+  
+  .insightsGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+  
+  .insightCard {
+    background: #1a1a1a;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #333;
+    transition: all 0.4s ease;
+  }
+  
+  .insightCard:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    border-color: #6617cb;
+  }
+  
+  .insightCard h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: #f0f0f0;
+  }
+  
+  .contentStatusChart {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .statusItem {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  
+  .statusLabel {
+    flex: 0 0 80px;
+    font-size: 14px;
+    color: #b3b3b3;
+  }
+  
+  .statusBar {
+    flex: 1;
+    height: 8px;
+    background: rgba(26, 26, 26, 0.9);
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid rgba(51, 51, 51, 0.5);
+  }
+  
+  .statusFill {
+    height: 100%;
+    transition: width 0.3s ease;
+  }
+  
+  .publishedFill {
+    background: linear-gradient(90deg, #10b981, #34d399);
+  }
+  
+  .draftFill {
+    background: linear-gradient(90deg, #f59e0b, #fbbf24);
+  }
+  
+  .statusValue {
+    flex: 0 0 30px;
+    text-align: right;
+    font-weight: 500;
+    color: #f0f0f0;
+  }
+  
+  .engagementDetail {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 24px;
+  }
+  
+  .engagementMetric {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .metricValue {
+    font-size: 24px;
+    font-weight: 700;
+    color: #f0f0f0;
+    background: linear-gradient(90deg, #6617cb, #cb17a3);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  
+  .metricLabel {
+    font-size: 12px;
+    color: #b3b3b3;
+  }
+  
+  .insightTip {
+    font-size: 14px;
+    color: #b3b3b3;
+    border-top: 1px solid rgba(51, 51, 51, 0.5);
+    padding-top: 16px;
+  }
+  
+  /* Primary button styles */
+  .primaryButton {
+    padding: 10px 20px;
+    background: linear-gradient(90deg, #6617cb, #8a2be2);
+    color: #f0f0f0;
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+  }
+  
+  .primaryButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 23, 203, 0.4);
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 1024px) {
+    .statsOverview {
+      grid-template-columns: 1fr;
+    }
+  
+    .modelList, .insightsGrid {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .welcomeHero {
+      flex-direction: column;
+    }
+    
+    .mainContent {
+      padding: 16px;
+    }
+    
+    .welcomeTitle {
+      font-size: 24px;
+    }
+    
+    .statValue {
+      font-size: 24px;
+    }
+    
+    .sectionTitle {
+      font-size: 18px;
+    }
+  }
+  
+  /* Animations */
+  @keyframes pulse {
+    0% {
+      box-shadow: 0 0 0 0 rgba(102, 23, 203, 0.4);
+    }
+    70% {
+      box-shadow: 0 0 0 10px rgba(102, 23, 203, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(102, 23, 203, 0);
+    }
+  }
+  
+  .modelCard:hover .modelActionButton {
+    animation: pulse 1.5s infinite;
+  }
+  
+@media (max-width: 768px) {
+    .partCardHeader {
+        flex-wrap: wrap;
+    }
+    
+    .partTitle {
+        width: 100%;
+        margin: 8px 0;
+    }
 }

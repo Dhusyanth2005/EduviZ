@@ -19,6 +19,7 @@
   position: relative; /* Ensure relative positioning */
   overflow-x: hidden; /* Prevent horizontal overflow */
   overflow-y: auto;
+  
 }
 
 .homepage > div,
