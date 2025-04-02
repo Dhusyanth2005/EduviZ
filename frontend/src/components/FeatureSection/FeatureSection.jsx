@@ -62,7 +62,6 @@ const FeatureSection = () => {
     <section 
       id="features-section"
       className={styles.featuresSection} 
-      
     >
       <div className={styles.container}>
         <div className={styles.sectionHeader}>

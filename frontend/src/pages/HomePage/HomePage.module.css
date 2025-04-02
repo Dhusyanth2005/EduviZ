@@ -1,3 +1,4 @@
+/* pages/HomePage.module.css */
 .homepage {
   --primary: #6617cb;
   --primary-dark: #5214a3;
@@ -15,6 +16,15 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  position: relative; /* Ensure relative positioning */
+  overflow-x: hidden; /* Prevent horizontal overflow */
+  overflow-y: auto;
+}
+
+.homepage > div,
+.homepage > section {
+  position: relative; /* Ensure sections are in normal flow */
+  width: 100%;
 }
 /* General Header Styling */
 .headerWrapper {
@@ -286,6 +296,7 @@
   background-color: #0F1015;
   position: relative;
   overflow: hidden;
+  will-change: opacity, transform;
 }
 
 .featuresSection::before {
@@ -577,6 +588,7 @@
   background-color: var(--background-dark);
   position: relative; /* For absolute positioning of background */
   overflow: hidden; /* Contain shapes */
+  will-change: opacity, transform;
 }
 
 .categoriesGrid {
@@ -664,6 +676,7 @@
 .howItWorksSection {
   padding: 100px 0;
   background-color: var(--background-light);
+  will-change: opacity, transform;
 }
 
 .stepsContainer {
@@ -720,6 +733,7 @@
   background-color: var(--background-dark);
   position: relative; /* For absolute positioning of background */
   overflow: hidden; /* Contain shapes */
+  will-change: opacity, transform;
 }
 
 .modelsGrid {
@@ -844,6 +858,7 @@
 .testimonialsSection {
   padding: 100px 0;
   background-color: var(--background-light);
+  will-change: opacity, transform;
 }
 
 .testimonialsGrid {
