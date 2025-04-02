@@ -2,8 +2,9 @@
 html, body {
   margin: 0;
   padding: 0;
+  overflow-y: auto !important;
   height: 100%;
-  overflow-y: auto; /* Ensures vertical scrolling is enabled */
+  scroll-behavior: smooth; /* Ensures vertical scrolling is enabled */
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
   /* Define global CSS variables (optional, can be overridden by components) */
   --primary: #6617cb;
@@ -46,4 +47,9 @@ body::-webkit-scrollbar-thumb {
 html::-webkit-scrollbar-thumb:hover,
 body::-webkit-scrollbar-thumb:hover {
   background: var(--primary-dark); /* Darker shade on hover */
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }

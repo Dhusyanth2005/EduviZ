@@ -220,7 +220,24 @@
     text-transform: uppercase;
     letter-spacing: 1px;
 }
-  
+.featureSwiper {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.modelShowcase {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.modelOverlay {
+  transition: opacity 0.3s ease;
+}
+
+.modelShowcase:hover .modelOverlay {
+  opacity: 1;
+}
 /* Button styles */
 .btnOutline {
     display: inline-block;
