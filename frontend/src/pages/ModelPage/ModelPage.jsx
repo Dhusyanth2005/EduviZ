@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import ModelViewer from "../../components/ModelSection/ModelViewer";
 import ModelDescription from "../../components/ModelSection/ModelDescription";
-import { FaSun, FaMoon } from 'react-icons/fa';
+import { FaSun, FaMoon, FaExpand, FaCompress, FaCamera, FaRedo, FaSearchPlus, FaSearchMinus } from 'react-icons/fa';
 import styles from './ModelPage.module.css';
 import { bicycleData } from '../../bicycleData';
 
@@ -15,6 +15,8 @@ export default function ModelPage() {
   const [isDismantleMode, setIsDismantleMode] = useState(true);
   const [selectedPart, setSelectedPart] = useState(null);
   const [error, setError] = useState('');
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const appRef = useRef(null);
 
   const parts = Object.keys(bicycleData.parts);
   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
@@ -95,12 +97,74 @@ export default function ModelPage() {
     }
   };
 
+  // Fullscreen control
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      appRef.current.requestFullscreen();
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen();
+      setIsFullscreen(false);
+    }
+  };
+
+  // Screenshot control
+  const takeScreenshot = () => {
+    if (modelViewerRef && modelViewerRef.current) {
+      const url = modelViewerRef.current.toDataURL();
+      const link = document.createElement("a");
+      link.download = `${selectedPart || "bicycle"}-screenshot.png`;
+      link.href = url;
+      link.click();
+    }
+  };
+
+  // Reset model view control
+  const resetModelView = () => {
+    if (modelViewerRef && modelViewerRef.current) {
+      modelViewerRef.current.cameraOrbit = "auto auto auto";
+      modelViewerRef.current.fieldOfView = "auto";
+    }
+  };
+
+  // Zoom controls for model-viewer
+  const zoomIn = () => {
+    if (modelViewerRef && modelViewerRef.current) {
+      // Get current camera orbit values
+      const orbitValues = modelViewerRef.current.getCameraOrbit();
+      // The radius is the third value (distance from target)
+      const currentRadius = orbitValues.radius;
+      // Decrease radius to zoom in (move camera closer to model)
+      const newRadius = Math.max(currentRadius * 0.8, 1); // Prevent zooming in too close
+      // Keep the same theta and phi angles, just change the radius
+      modelViewerRef.current.cameraOrbit = `${orbitValues.theta}rad ${orbitValues.phi}rad ${newRadius}m`;
+    }
+  };
+
+  const zoomOut = () => {
+    if (modelViewerRef && modelViewerRef.current) {
+      // Get current camera orbit values
+      const orbitValues = modelViewerRef.current.getCameraOrbit();
+      // The radius is the third value (distance from target)
+      const currentRadius = orbitValues.radius;
+      // Increase radius to zoom out (move camera away from model)
+      const newRadius = currentRadius * 1.5;
+      // Keep the same theta and phi angles, just change the radius
+      modelViewerRef.current.cameraOrbit = `${orbitValues.theta}rad ${orbitValues.phi}rad ${newRadius}m`;
+    }
+  };
+
+
+
   const toggleDrawer = () => setIsDrawerOpen(!isDrawerOpen);
   const toggleTheme = () => setIsDarkMode(!isDarkMode);
   const handleModelViewerLoad = (ref) => setModelViewerRef(ref);
 
   return (
-    <div className={`${styles.modelPage} ${isDarkMode ? styles.dark : ''}`}>
+    <div 
+      className={`${styles.modelPage} ${isDarkMode ? styles.dark : ''} ${isFullscreen ? styles.fullscreen : ''}`}
+      ref={appRef}
+    >
       <header className={styles.header}>
         <h1>Eduviz-Viewer</h1>
         <div className={styles.headerControls}>
@@ -144,6 +208,28 @@ export default function ModelPage() {
           <button onClick={handleBackClick} className={styles.backButton}>Back to Full View</button>
         )}
       </div>
+      
+      {/* Viewer controls section - only visible in full view */}
+      {!showDetailView && (
+        <div className={styles.viewerControls}>
+          <button onClick={toggleFullscreen} className={styles.controlButton}>
+            {isFullscreen ? <FaCompress /> : <FaExpand />}
+          </button>
+          <button onClick={takeScreenshot} className={styles.controlButton}>
+            <FaCamera />
+          </button>
+          <button onClick={resetModelView} className={styles.controlButton}>
+            <FaRedo />
+          </button>
+          {/* Zoom controls */}
+          <button onClick={zoomIn} className={styles.controlButton} title="Zoom In">
+            <FaSearchPlus />
+          </button>
+          <button onClick={zoomOut} className={styles.controlButton} title="Zoom Out">
+            <FaSearchMinus />
+          </button>
+        </div>
+      )}
 
       {error && <p className={styles.error}>{error}</p>}
 

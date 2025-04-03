@@ -1,3 +1,4 @@
+require('dotenv').config(); // Load environment variables first
 const app = require('./app');
 
 const port = 8080;
