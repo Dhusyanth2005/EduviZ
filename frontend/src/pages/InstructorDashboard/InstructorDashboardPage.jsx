@@ -10,16 +10,19 @@ function CreateModelForm({ onModelCreated, onCancel }) {
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
   const [mainModel, setMainModel] = useState(null);
-  const [keyframes, setKeyframes] = useState(0);
-  const [framesPerSecond, setFramesPerSecond] = useState(24);
+  const [modelCover, setModelCover] = useState(null); // New state for model cover image
+  const [keyframes, setKeyframes] = useState("");  // Changed from number to string
+  const [framesPerSecond, setFramesPerSecond] = useState("24");  // Changed default to string
   const [parts, setParts] = useState([]);
   const [newPart, setNewPart] = useState({
     title: "",
     description: "",
+    uses: "", // Added uses field
     model: null
   });
   
   const mainModelInputRef = useRef(null);
+  const modelCoverInputRef = useRef(null); // New ref for model cover
   const partModelInputRef = useRef(null);
 
   const handleSubmit = (e) => {
@@ -30,6 +33,7 @@ function CreateModelForm({ onModelCreated, onCancel }) {
       description,
       category,
       mainModel: mainModel?.name || "No model uploaded",
+      modelCover: modelCover?.name || "No cover image", // Add model cover to the new model
       keyframes,
       framesPerSecond,
       parts,
@@ -47,8 +51,9 @@ function CreateModelForm({ onModelCreated, onCancel }) {
     setDescription("");
     setCategory("");
     setMainModel(null);
-    setKeyframes(0);
-    setFramesPerSecond(24);
+    setModelCover(null); // Reset model cover
+    setKeyframes("");
+    setFramesPerSecond("24");
     setParts([]);
   };
 
@@ -62,6 +67,7 @@ function CreateModelForm({ onModelCreated, onCancel }) {
       setNewPart({
         title: "",
         description: "",
+        uses: "", // Reset uses field
         model: null
       });
     }
@@ -133,25 +139,41 @@ function CreateModelForm({ onModelCreated, onCancel }) {
               {mainModel && <span className={styles.fileName}>{mainModel.name}</span>}
             </div>
           </div>
+          
+          {/* New Model Cover Upload Input */}
+          <div className={styles.formGroup}>
+            <label>Upload Model Cover Image</label>
+            <div className={styles.uploadContainer}>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setModelCover(e.target.files[0])}
+                ref={modelCoverInputRef}
+                className={styles.hiddenFileInput}
+              />
+              <div className={styles.uploadIcon} onClick={() => handleUploadClick(modelCoverInputRef)}>
+                <span>↑</span>
+              </div>
+              {modelCover && <span className={styles.fileName}>{modelCover.name}</span>}
+            </div>
+          </div>
+          
           <div className={styles.formRow}>
             <div className={styles.formGroup}>
               <label>Keyframes</label>
               <input
-                type="number"
+                type="text" // Changed from number to text
                 value={keyframes}
-                onChange={(e) => setKeyframes(parseInt(e.target.value) || 0)}
-                min="0"
+                onChange={(e) => setKeyframes(e.target.value)}
                 placeholder="Number of keyframes"
               />
             </div>
             <div className={styles.formGroup}>
               <label>Frames Per Second</label>
               <input
-                type="number"
+                type="text" // Changed from number to text
                 value={framesPerSecond}
-                onChange={(e) => setFramesPerSecond(parseInt(e.target.value) || 24)}
-                min="1"
-                max="120"
+                onChange={(e) => setFramesPerSecond(e.target.value)}
                 placeholder="FPS"
               />
             </div>
@@ -180,6 +202,15 @@ function CreateModelForm({ onModelCreated, onCancel }) {
                 value={newPart.description}
                 onChange={(e) => setNewPart({...newPart, description: e.target.value})}
                 placeholder="Describe this part"
+              />
+            </div>
+            {/* Added Uses Field */}
+            <div className={styles.formGroup}>
+              <label>Part Uses</label>
+              <textarea
+                value={newPart.uses}
+                onChange={(e) => setNewPart({...newPart, uses: e.target.value})}
+                placeholder="Describe how this part can be used"
               />
             </div>
             <div className={styles.formGroup}>
@@ -229,6 +260,12 @@ function CreateModelForm({ onModelCreated, onCancel }) {
                     </div>
                     <div className={styles.partCardBody}>
                       <p className={styles.partDescription}>{part.description}</p>
+                      {/* Display Uses if available */}
+                      {part.uses && (
+                        <p className={styles.partUses}>
+                          <strong>Uses:</strong> {part.uses}
+                        </p>
+                      )}
                       <div className={styles.partFile}>
                         <span className={styles.fileIcon}>📄</span>
                         <span className={styles.fileName}>{part.model.name}</span>
@@ -267,12 +304,13 @@ function InstructorDashboard() {
       description: "Detailed 3D model of human body systems",
       category: "Biology",
       mainModel: "human_body.glb",
-      keyframes: 24,
-      framesPerSecond: 30,
+      modelCover: "anatomy_cover.jpg", // Added model cover
+      keyframes: "24",
+      framesPerSecond: "30",
       parts: [
-        { id: 101, title: "Skeletal System", description: "Bones and joints", model: { name: "skeleton.glb" } },
-        { id: 102, title: "Muscular System", description: "Major muscle groups", model: { name: "muscles.glb" } },
-        { id: 103, title: "Circulatory System", description: "Heart and vessels", model: { name: "circulatory.glb" } }
+        { id: 101, title: "Skeletal System", description: "Bones and joints", uses: "Teaching bone structure and joint movement", model: { name: "skeleton.glb" } },
+        { id: 102, title: "Muscular System", description: "Major muscle groups", uses: "Demonstrating muscle contractions and anatomy", model: { name: "muscles.glb" } },
+        { id: 103, title: "Circulatory System", description: "Heart and vessels", uses: "Visualizing blood flow and heart function", model: { name: "circulatory.glb" } }
       ],
       createdAt: "March 15, 2025",
       views: 1245,
@@ -284,11 +322,12 @@ function InstructorDashboard() {
       description: "Interactive 3D representation of chemical compounds",
       category: "Chemistry",
       mainModel: "molecule_base.glb",
-      keyframes: 12,
-      framesPerSecond: 24,
+      modelCover: "molecule_cover.png", // Added model cover
+      keyframes: "12",
+      framesPerSecond: "24",
       parts: [
-        { id: 201, title: "Atoms", description: "Individual atoms", model: { name: "atoms.glb" } },
-        { id: 202, title: "Bonds", description: "Chemical bonds", model: { name: "bonds.glb" } }
+        { id: 201, title: "Atoms", description: "Individual atoms", uses: "Teaching atomic structure and elements", model: { name: "atoms.glb" } },
+        { id: 202, title: "Bonds", description: "Chemical bonds", uses: "Explaining bonding types and molecular forces", model: { name: "bonds.glb" } }
       ],
       createdAt: "March 20, 2025",
       views: 876,

@@ -2,8 +2,6 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import HomePage from './pages/HomePage/HomePage.jsx';
 import ModelPage from './pages/ModelPage/ModelPage.jsx';
-
-
 import LearnerDashboard from './pages/LearnerDashboard/LearnerDashboard.jsx';
 import RoleSelection from './pages/RoleSelection/RoleSelection.jsx';
 import LoginPage from './pages/SignUp/LoginPage.jsx';
@@ -125,6 +123,7 @@ const marketplaceModels = [
     lastUpdated: "March 18, 2025"
   }
 ];
+
   return (
     <Router>
       <Routes>

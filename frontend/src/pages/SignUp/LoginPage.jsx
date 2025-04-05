@@ -12,7 +12,113 @@ const LoginPage = () => {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState('en');
   const navigate = useNavigate();
+
+  const t = (key) => {
+    const translations = {
+      en: {
+        welcomeBack: "Welcome Back to",
+        signInContinue: "Sign in to continue your learning journey!",
+        signInToEduViz: "Sign In to EduViz",
+        welcomeSignIn: "Welcome back! Please sign in",
+        emailAddress: "Email Address",
+        enterEmail: "Enter your email address",
+        password: "Password",
+        enterPassword: "Enter your password",
+        signIn: "Sign In",
+        signingIn: "Signing In...",
+        or: "OR",
+        noAccount: "Don't have an account?",
+        signUp: "Sign up",
+        loginSuccess: "Logged in successfully!"
+      },
+      ta: {
+        welcomeBack: "மீண்டும் வரவேற்கிறோம்",
+        signInContinue: "உங்கள் கற்றல் பயணத்தைத் தொடர உள்நுழையவும்!",
+        signInToEduViz: "EduViz-இல் உள்நுழையவும்",
+        welcomeSignIn: "மீண்டும் வரவேற்கிறோம்! உள்நுழையவும்",
+        emailAddress: "மின்னஞ்சல் முகவரி",
+        enterEmail: "உங்கள் மின்னஞ்சல் முகவரியை உள்ளிடவும்",
+        password: "கடவுச்சொல்",
+        enterPassword: "உங்கள் கடவுச்சொல்லை உள்ளிடவும்",
+        signIn: "உள்நுழைய",
+        signingIn: "உள்நுழைகிறது...",
+        or: "அல்லது",
+        noAccount: "கணக்கு இல்லையா?",
+        signUp: "பதிவு செய்யவும்",
+        loginSuccess: "வெற்றிகரமாக உள்நுழைந்தது!"
+      },
+      hi: {
+        welcomeBack: "वापसी पर स्वागत है",
+        signInContinue: "अपनी सीखने की यात्रा जारी रखने के लिए साइन इन करें!",
+        signInToEduViz: "EduViz में साइन इन करें",
+        welcomeSignIn: "वापसी पर स्वागत है! कृपया साइन इन करें",
+        emailAddress: "ईमेल पता",
+        enterEmail: "अपना ईमेल पता दर्ज करें",
+        password: "पासवर्ड",
+        enterPassword: "अपना पासवर्ड दर्ज करें",
+        signIn: "साइन इन करें",
+        signingIn: "साइन इन हो रहा है...",
+        or: "या",
+        noAccount: "खाता नहीं है?",
+        signUp: "साइन अप करें",
+        loginSuccess: "सफलतापूर्वक लॉग इन हो गया!"
+      },
+      de: {
+        welcomeBack: "Willkommen zurück bei",
+        signInContinue: "Melden Sie sich an, um Ihre Lernreise fortzusetzen!",
+        signInToEduViz: "Bei EduViz anmelden",
+        welcomeSignIn: "Willkommen zurück! Bitte melden Sie sich an",
+        emailAddress: "E-Mail-Adresse",
+        enterEmail: "Geben Sie Ihre E-Mail-Adresse ein",
+        password: "Passwort",
+        enterPassword: "Geben Sie Ihr Passwort ein",
+        signIn: "Anmelden",
+        signingIn: "Anmeldung läuft...",
+        or: "ODER",
+        noAccount: "Noch kein Konto?",
+        signUp: "Registrieren",
+        loginSuccess: "Erfolgreich angemeldet!"
+      },
+      ja: {
+        welcomeBack: "おかえりなさい",
+        signInContinue: "学習の旅を続けるにはサインインしてください！",
+        signInToEduViz: "EduVizにサインイン",
+        welcomeSignIn: "おかえりなさい！サインインしてください",
+        emailAddress: "メールアドレス",
+        enterEmail: "メールアドレスを入力してください",
+        password: "パスワード",
+        enterPassword: "パスワードを入力してください",
+        signIn: "サインイン",
+        signingIn: "サインイン中...",
+        or: "または",
+        noAccount: "アカウントをお持ちでない方は",
+        signUp: "サインアップ",
+        loginSuccess: "ログインに成功しました！"
+      }
+    };
+    return translations[selectedLanguage][key];
+  };
+
+  useEffect(() => {
+    const savedLanguage = localStorage.getItem('preferredLanguage');
+    if (savedLanguage) {
+      setSelectedLanguage(savedLanguage);
+    }
+
+    const handleLanguageChange = () => {
+      const newLanguage = localStorage.getItem('preferredLanguage');
+      if (newLanguage) {
+        setSelectedLanguage(newLanguage);
+      }
+    };
+
+    window.addEventListener('localStorageChange', handleLanguageChange);
+    return () => {
+      window.removeEventListener('localStorageChange', handleLanguageChange);
+    };
+  }, []);
 
   useEffect(() => {
     // Particle animation code (unchanged)
@@ -110,9 +216,9 @@ const LoginPage = () => {
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/login`, {
         email: formData.email,
         password: formData.password,
-      }, { withCredentials: true }); // Include cookies for session
+      }, { withCredentials: true });
 
-      setMessage('Logged in successfully!');
+      setMessage(t('loginSuccess'));
       setTimeout(() => {
         navigate("/dashboard");
       }, 1500);
@@ -150,22 +256,22 @@ const LoginPage = () => {
                   EduViz
                 </div>
                 <h1 className={styles.signupHeadline}>
-                  Welcome Back to <span>EduViz</span>
+                  {t('welcomeBack')} <span>EduViz</span>
                 </h1>
                 <p className={styles.signupSubtext}>
-                  Sign in to continue your learning journey!
+                  {t('signInContinue')}
                 </p>
               </div>
               <div className={styles.signupFormContainer}>
                 <div className={styles.formDecoration + " " + styles.formDecoration1} />
                 <div className={styles.formDecoration + " " + styles.formDecoration2} />
                 <div className={styles.formHeader}>
-                  <h2 className={styles.formTitle}>Sign In to EduViz</h2>
-                  <p className={styles.formSubtitle}>Welcome back! Please sign in</p>
+                  <h2 className={styles.formTitle}>{t('signInToEduViz')}</h2>
+                  <p className={styles.formSubtitle}>{t('welcomeSignIn')}</p>
                 </div>
                 <form className={styles.signupForm} onSubmit={handleLogin}>
                   <div className={styles.formGroup}>
-                    <label className={styles.formLabel} htmlFor="email">Email Address</label>
+                    <label className={styles.formLabel} htmlFor="email">{t('emailAddress')}</label>
                     <input
                       type="email"
                       className={styles.formControl}
@@ -173,12 +279,12 @@ const LoginPage = () => {
                       name="email"
                       value={formData.email}
                       onChange={handleInputChange}
-                      placeholder="Enter your email address"
+                      placeholder={t('enterEmail')}
                       required
                     />
                   </div>
                   <div className={styles.formGroup}>
-                    <label className={styles.formLabel} htmlFor="password">Password</label>
+                    <label className={styles.formLabel} htmlFor="password">{t('password')}</label>
                     <input
                       type="password"
                       className={styles.formControl}
@@ -186,17 +292,17 @@ const LoginPage = () => {
                       name="password"
                       value={formData.password}
                       onChange={handleInputChange}
-                      placeholder="Enter your password"
+                      placeholder={t('enterPassword')}
                       required
                     />
                   </div>
                   <button type="submit" className={styles.signupButton} disabled={loading}>
-                    <span>{loading ? 'Signing In...' : 'Sign In'}</span>
+                    <span>{loading ? t('signingIn') : t('signIn')}</span>
                   </button>
                   {message && <div className={styles.successMessage}>{message}</div>}
                   {error && <div className={styles.errorMessage}>{error}</div>}
                   <div className={styles.orDivider}>
-                    <div className={styles.dividerLine} /><span className={styles.dividerText}>OR</span><div className={styles.dividerLine} />
+                    <div className={styles.dividerLine} /><span className={styles.dividerText}>{t('or')}</span><div className={styles.dividerLine} />
                   </div>
                   <div className={styles.socialLogin}>
                     <button type="button" className={styles.socialButton} onClick={handleGoogleLogin}>
@@ -207,7 +313,7 @@ const LoginPage = () => {
                     </button>
                   </div>
                   <div className={styles.signinLink}>
-                    Don’t have an account? <a href="/signup">Sign up</a>
+                    {t('noAccount')} <a href="/signup">{t('signUp')}</a>
                   </div>
                 </form>
               </div>

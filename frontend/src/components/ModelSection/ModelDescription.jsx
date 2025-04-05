@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { bicycleData } from '../../bicycleData';
+import { bicycleData } from '../../bicycleData'; // Assuming this now imports the updated data with `description`
 import styles from './ModelDescription.module.css';
 import axios from 'axios';
 
@@ -17,8 +17,7 @@ function ModelDescription({ selectedPart, isDarkMode }) {
           await axios.post('http://localhost:8080/preload', {
             data: {
               item: partInfo.name || 'Unknown Part',
-              details: partInfo.manufacturing || 'No manufacturing info available.',
-              materials: partInfo.materials || 'No material info available.',
+              details: partInfo.description || 'No description available.', // Use the new description field
             },
           });
           if (isChatOpen) {
@@ -88,7 +87,7 @@ function ModelDescription({ selectedPart, isDarkMode }) {
       <div className={`${styles.descriptionContainer} ${isDarkMode ? styles.dark : ''}`}>
         <div className={styles.description}>
           <h2>Welcome to EduViz</h2>
-          <p>Select a bicycle part from the drawer to learn about its manufacturing process and materials.</p>
+          <p>Select a bicycle part from the drawer to learn about its description.</p>
           <button className={styles.chatButton} onClick={toggleChat}>
             💬
           </button>
@@ -108,8 +107,8 @@ function ModelDescription({ selectedPart, isDarkMode }) {
   }
 
   const partInfo = bicycleData.parts[selectedPart] || {};
-  const manufacturingSteps = partInfo.manufacturing
-    ? partInfo.manufacturing.split(/\. (?=\d+\.)/).map((step) => step.trim() + '.')
+  const descriptionLines = partInfo.description
+    ? partInfo.description.split('. ').map((line) => line.trim() + '.') // Split into sentences
     : [];
 
   return (
@@ -127,24 +126,20 @@ function ModelDescription({ selectedPart, isDarkMode }) {
         ) : (
           <>
             <h2>{partInfo.name || 'Unknown Part'}</h2>
-            <h3>How It's Made:</h3>
+            <h3>Description:</h3>
             <ol>
-              {manufacturingSteps.length > 0
-                ? manufacturingSteps.map((step, index) => <li key={index}>{step.trim()}</li>)
-                : <p>No manufacturing info available.</p>}
+              {descriptionLines.length > 0
+                ? descriptionLines.map((line, index) => (
+                    <li key={index}>{line}</li> // Display each sentence as a list item
+                  ))
+                : <p>No description available.</p>}
             </ol>
-            <h3>Materials:</h3>
-            <p>{partInfo.materials || 'No material info available.'}</p>
             <h3>Usage:</h3>
             <p>
               This {partInfo.name?.toLowerCase() || 'part'} is a key component of the bicycle, contributing to its overall
               functionality and performance.
             </p>
-            <h3>Educational Note:</h3>
-            <p>
-              Understanding how this part is manufactured helps students appreciate the engineering and materials science
-              behind everyday objects like bicycles.
-            </p>
+            
             <button className={styles.chatButton} onClick={toggleChat}>
               💬
             </button>
@@ -155,14 +150,13 @@ function ModelDescription({ selectedPart, isDarkMode }) {
   );
 }
 
-// This is the updated Telegram-style ChatUI component
+// ChatUI component remains unchanged
 function ChatUI({ chat, message, setMessage, sendMessage, toggleChat, isDarkMode }) {
   const formatTime = () => {
     const now = new Date();
     return `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
   };
 
-  // Group messages by sender
   const groupedMessages = [];
   let currentGroup = null;
 
