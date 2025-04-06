@@ -1,6 +1,6 @@
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const { getDb } = require('../config/db');
+const User = require('../models/User');
 require('dotenv').config();
 
 passport.serializeUser((user, done) => {
@@ -9,8 +9,7 @@ passport.serializeUser((user, done) => {
 
 passport.deserializeUser(async (id, done) => {
   try {
-    const db = getDb();
-    const user = await db.collection('users').findOne({ _id: require('mongodb').ObjectId(id) });
+    const user = await User.findById(id);
     if (user) {
       done(null, user);
     } else {
@@ -29,17 +28,28 @@ passport.use(new GoogleStrategy({
   },
   async (req, accessToken, refreshToken, profile, done) => {
     try {
-      const db = getDb();
-      let user = await db.collection('users').findOne({ email: profile.emails[0].value });
+      let user = await User.findOne({ email: profile.emails[0].value });
+      
       if (!user) {
-        user = {
+        // Create a new user with a random password for Google users
+        const randomPassword = Math.random().toString(36).slice(-8);
+        user = new User({
           email: profile.emails[0].value,
           fullName: profile.displayName,
+          password: randomPassword, // Set a random password for Google users
           googleId: profile.id,
-          createdAt: new Date(),
-        };
-        await db.collection('users').insertOne(user);
+          role: 'learner', // Default role
+          preferredLanguage: 'en', // Default language
+          isVerified: true // Google accounts are pre-verified
+        });
+        
+        await user.save();
+      } else if (!user.googleId) {
+        // Link existing user with Google
+        user.googleId = profile.id;
+        await user.save();
       }
+      
       return done(null, user);
     } catch (error) {
       return done(error, null);

@@ -355,6 +355,10 @@ const SignUpPage = () => {
         password: formData.password,
       });
 
+      // Store the token from signup response
+      const { token } = signupResponse.data;
+      localStorage.setItem('token', token);
+
       setMessage(t('accountSuccess'));
       setTimeout(() => {
         navigate("/RoleSelection");

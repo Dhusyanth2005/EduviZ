@@ -218,9 +218,18 @@ const LoginPage = () => {
         password: formData.password,
       }, { withCredentials: true });
 
+      // Store the token from login response
+      const { token, user } = response.data;
+      localStorage.setItem('token', token);
+
       setMessage(t('loginSuccess'));
       setTimeout(() => {
-        navigate("/dashboard");
+        console.log("User data:",user); // Log user data for debugging
+        if (!user.role) {
+          navigate("/RoleSelection"); // Redirect to role selection if no role
+        } else {
+          navigate(`/${user.role}`); // Redirect to dashboard if role exists
+        }
       }, 1500);
     } catch (error) {
       setError(error.response?.data?.error || 'Failed to log in');

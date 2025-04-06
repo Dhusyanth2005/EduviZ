@@ -1,14 +1,14 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "./RoleSelection.css";
+import axios from "axios"; // Added for API calls
 
 const RoleSelection = () => {
   const canvasRef = useRef(null);
   const [hoveredRole, setHoveredRole] = useState(null);
   const [selectedLanguage, setSelectedLanguage] = useState('en');
-
-  const handleMouseEnter = useCallback((role) => setHoveredRole(role), []);
-  const handleMouseLeave = useCallback(() => setHoveredRole(null), []);
+  const [loading, setLoading] = useState(false); // Added for loading state
+  const [error, setError] = useState(''); // Added for error state
   const navigate = useNavigate();
 
   const t = (key) => {
@@ -33,7 +33,9 @@ const RoleSelection = () => {
         continueAsStudent: "Continue as Student",
         continueAsTeacher: "Continue as Teacher",
         notSure: "Not sure which role to choose?",
-        learnMore: "Learn more about roles"
+        learnMore: "Learn more about roles",
+        roleSuccess: "Role selected successfully!",
+        roleError: "Failed to select role. Please try again."
       },
       ta: {
         chooseLearning: "உங்கள் கற்றல் பயணத்தைத் தேர்வு செய்யவும்",
@@ -55,7 +57,9 @@ const RoleSelection = () => {
         continueAsStudent: "மாணவராக தொடரவும்",
         continueAsTeacher: "ஆசிரியராக தொடரவும்",
         notSure: "எந்த பங்கைத் தேர்வு செய்வது என்று தெரியவில்லையா?",
-        learnMore: "பங்குகள் பற்றி மேலும் அறிக"
+        learnMore: "பங்குகள் பற்றி மேலும் அறிக",
+        roleSuccess: "பங்கு வெற்றிகரமாக தேர்ந்தெடுக்கப்பட்டது!",
+        roleError: "பங்கைத் தேர்ந்தெடுக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்."
       },
       hi: {
         chooseLearning: "अपनी सीखने की यात्रा चुनें",
@@ -77,7 +81,9 @@ const RoleSelection = () => {
         continueAsStudent: "छात्र के रूप में जारी रखें",
         continueAsTeacher: "शिक्षक के रूप में जारी रखें",
         notSure: "कौन सी भूमिका चुनें, यह तय नहीं कर पा रहे?",
-        learnMore: "भूमिकाओं के बारे में और जानें"
+        learnMore: "भूमिकाओं के बारे में और जानें",
+        roleSuccess: "भूमिका सफलतापूर्वक चुनी गई!",
+        roleError: "भूमिका चुनने में विफल। कृपया पुनः प्रयास करें।"
       },
       de: {
         chooseLearning: "Wählen Sie Ihre Lernreise",
@@ -99,7 +105,9 @@ const RoleSelection = () => {
         continueAsStudent: "Als Student fortfahren",
         continueAsTeacher: "Als Lehrer fortfahren",
         notSure: "Nicht sicher, welche Rolle Sie wählen sollen?",
-        learnMore: "Mehr über Rollen erfahren"
+        learnMore: "Mehr über Rollen erfahren",
+        roleSuccess: "Rolle erfolgreich ausgewählt!",
+        roleError: "Rolle konnte nicht ausgewählt werden. Bitte versuchen Sie es erneut."
       },
       ja: {
         chooseLearning: "学習の旅を選択",
@@ -121,7 +129,9 @@ const RoleSelection = () => {
         continueAsStudent: "学生として続ける",
         continueAsTeacher: "教師として続ける",
         notSure: "どの役割を選ぶか迷っていますか？",
-        learnMore: "役割について詳しく知る"
+        learnMore: "役割について詳しく知る",
+        roleSuccess: "ロールが正常に選択されました！",
+        roleError: "ロールの選択に失敗しました。もう一度お試しください。"
       }
     };
     return translations[selectedLanguage][key];
@@ -163,7 +173,6 @@ const RoleSelection = () => {
     window.addEventListener("resize", resizeCanvas);
     resizeCanvas();
 
-    // Initialize particles
     for (let i = 0; i < 50; i++) {
       particles.push({
         x: Math.random() * canvas.width,
@@ -175,7 +184,6 @@ const RoleSelection = () => {
       });
     }
 
-    // Initialize connections
     for (let i = 0; i < 20; i++) {
       const startIndex = Math.floor(Math.random() * particles.length);
       const endIndex = Math.floor(Math.random() * particles.length);
@@ -189,7 +197,6 @@ const RoleSelection = () => {
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Draw connections
       connections.forEach((connection) => {
         const start = particles[connection.start];
         const end = particles[connection.end];
@@ -199,7 +206,7 @@ const RoleSelection = () => {
           end.x,
           end.y
         );
-        gradient.addColorStop(0, `rgba(123, 44, 191, ${connection.opacity})`); // Matches --primary
+        gradient.addColorStop(0, `rgba(123, 44, 191, ${connection.opacity})`);
         gradient.addColorStop(1, "rgba(123, 44, 191, 0)");
         ctx.beginPath();
         ctx.moveTo(start.x, start.y);
@@ -209,7 +216,6 @@ const RoleSelection = () => {
         ctx.stroke();
       });
 
-      // Draw and update particles
       particles.forEach((particle) => {
         particle.x += particle.speedX;
         particle.y += particle.speedY;
@@ -217,7 +223,7 @@ const RoleSelection = () => {
         if (particle.y < 0 || particle.y > canvas.height) particle.speedY *= -1;
         ctx.beginPath();
         ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(123, 44, 191, ${particle.opacity})`; // Matches --primary
+        ctx.fillStyle = `rgba(123, 44, 191, ${particle.opacity})`;
         ctx.fill();
       });
 
@@ -232,92 +238,130 @@ const RoleSelection = () => {
     };
   }, []);
 
+  const handleMouseEnter = useCallback((role) => setHoveredRole(role), []);
+  const handleMouseLeave = useCallback(() => setHoveredRole(null), []);
+
+  const handleRoleSelection = async (role) => {
+    setLoading(true);
+    setError('');
+
+    const backendRole = role === "student" ? "learner" : "instructor";
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+      setError("No authentication token found. Please log in again.");
+      setLoading(false);
+      navigate("/login");
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/select-role`,
+        { role: backendRole },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const { token: newToken } = response.data;
+      localStorage.setItem('token', newToken);
+
+      alert(t('roleSuccess'));
+      navigate(backendRole === "learner" ? "/dashboard" : "/instructor");
+    } catch (err) {
+      setError(t('roleError'));
+      console.error("Role selection error:", err.response?.data || err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="RoleSection">
-    <div
-      className={`role-selection-page ${
-        hoveredRole === "student"
-          ? "student-hovered"
-          : hoveredRole === "teacher"
-          ? "teacher-hovered"
-          : ""
-      }`}
-    >
-      <div className="model-background">
-        <canvas ref={canvasRef} className="particles-canvas"></canvas>
-        <div className="model-grid" />
-      </div>
-
-      <div className="role-selection-overlay" />
-
-      <div className="role-selection-container">
-        <div className="logo-container">
-          <div className="logo-icon">
-            <span>EV</span>
-          </div>
-          <div className="logo-text">EduViz</div>
+      <div
+        className={`role-selection-page ${
+          hoveredRole === "student"
+            ? "student-hovered"
+            : hoveredRole === "teacher"
+            ? "teacher-hovered"
+            : ""
+        }`}
+      >
+        <div className="model-background">
+          <canvas ref={canvasRef} className="particles-canvas"></canvas>
+          <div className="model-grid" />
         </div>
 
-        <h1 className="selection-title">
-          {t('chooseLearning')}
-        </h1>
-        <p className="selection-subtitle">
-          {t('selectRole')}
-        </p>
+        <div className="role-selection-overlay" />
 
-        <div className="roles-container">
-          <div
-            className={`role-card ${
-              hoveredRole === "student" ? "hovered" : ""
-            }`}
-            onMouseEnter={() => handleMouseEnter("student")}
-            onMouseLeave={handleMouseLeave}
-          >
-            <div className="role-icon">👨‍🎓</div>
-            <h2 className="role-title">{t('student')}</h2>
-            <p className="role-description">
-              {t('studentDesc')}
-            </p>
-            <ul className="role-features">
-              {t('studentFeatures').map((feature, index) => (
-                <li key={index}>{feature}</li>
-              ))}
-            </ul>
-            <button className="role-button student" onClick={()=>navigate("/dashboard")}>
-              <span>{t('continueAsStudent')}</span>
-              <span className="button-arrow">→</span>
-            </button>
+        <div className="role-selection-container">
+          <div className="logo-container">
+            <div className="logo-icon">
+              <span>EV</span>
+            </div>
+            <div className="logo-text">EduViz</div>
           </div>
 
-          <div
-            className={`role-card ${
-              hoveredRole === "teacher" ? "hovered" : ""
-            }`}
-            onMouseEnter={() => handleMouseEnter("teacher")}
-            onMouseLeave={handleMouseLeave}
-          >
-            <div className="role-icon">👩‍🏫</div>
-            <h2 className="role-title">{t('teacher')}</h2>
-            <p className="role-description">
-              {t('teacherDesc')}
-            </p>
-            <ul className="role-features">
-              {t('teacherFeatures').map((feature, index) => (
-                <li key={index}>{feature}</li>
-              ))}
-            </ul>
-            <button className="role-button teacher" onClick={()=>navigate('/instructor')}>
-              <span>{t('continueAsTeacher')}</span>
-              <span className="button-arrow">→</span>
-            </button>
-          </div>
-        </div>
+          <h1 className="selection-title">{t('chooseLearning')}</h1>
+          <p className="selection-subtitle">{t('selectRole')}</p>
 
-        <div className="help-text">
-          {t('notSure')} <a href="#">{t('learnMore')}</a>
+          <div className="roles-container">
+            <div
+              className={`role-card ${hoveredRole === "student" ? "hovered" : ""}`}
+              onMouseEnter={() => handleMouseEnter("student")}
+              onMouseLeave={handleMouseLeave}
+            >
+              <div className="role-icon">👨‍🎓</div>
+              <h2 className="role-title">{t('student')}</h2>
+              <p className="role-description">{t('studentDesc')}</p>
+              <ul className="role-features">
+                {t('studentFeatures').map((feature, index) => (
+                  <li key={index}>{feature}</li>
+                ))}
+              </ul>
+              <button
+                className="role-button student"
+                onClick={() => handleRoleSelection("student")}
+                disabled={loading}
+              >
+                <span>{loading ? "Processing..." : t('continueAsStudent')}</span>
+                <span className="button-arrow">→</span>
+              </button>
+            </div>
+
+            <div
+              className={`role-card ${hoveredRole === "teacher" ? "hovered" : ""}`}
+              onMouseEnter={() => handleMouseEnter("teacher")}
+              onMouseLeave={handleMouseLeave}
+            >
+              <div className="role-icon">👩‍🏫</div>
+              <h2 className="role-title">{t('teacher')}</h2>
+              <p className="role-description">{t('teacherDesc')}</p>
+              <ul className="role-features">
+                {t('teacherFeatures').map((feature, index) => (
+                  <li key={index}>{feature}</li>
+                ))}
+              </ul>
+              <button
+                className="role-button teacher"
+                onClick={() => handleRoleSelection("teacher")}
+                disabled={loading}
+              >
+                <span>{loading ? "Processing..." : t('continueAsTeacher')}</span>
+                <span className="button-arrow">→</span>
+              </button>
+            </div>
+          </div>
+
+          {error && <div className="error-message">{error}</div>}
+          <div className="help-text">
+            {t('notSure')} <a href="#">{t('learnMore')}</a>
+          </div>
         </div>
       </div>
-    </div>
     </div>
   );
 };

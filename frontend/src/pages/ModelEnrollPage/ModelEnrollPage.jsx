@@ -32,11 +32,11 @@ function ModelEnrollPage({ marketplaceModels }) {
       const exchangeRate = 83; // Adjust based on current rate
       const amountInRupees = amountInUSD * exchangeRate;
   
-      // Use the full backend URL
-      const { data: keyData } = await axios.get('http://localhost:8080/api/payment/key');
+      // Use the correct backend URL and endpoints
+      const { data: keyData } = await axios.get('http://localhost:8080/key');
       const { key } = keyData;
   
-      const { data: orderData } = await axios.post('http://localhost:8080/api/payment/process', {
+      const { data: orderData } = await axios.post('http://localhost:8080/process', {
         amount: amountInRupees,
       });
       const { order } = orderData;

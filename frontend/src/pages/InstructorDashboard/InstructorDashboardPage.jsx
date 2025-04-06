@@ -10,51 +10,94 @@ function CreateModelForm({ onModelCreated, onCancel }) {
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
   const [mainModel, setMainModel] = useState(null);
-  const [modelCover, setModelCover] = useState(null); // New state for model cover image
-  const [keyframes, setKeyframes] = useState("");  // Changed from number to string
-  const [framesPerSecond, setFramesPerSecond] = useState("24");  // Changed default to string
+  const [modelCover, setModelCover] = useState(null);
+  const [keyframes, setKeyframes] = useState("");
+  const [framesPerSecond, setFramesPerSecond] = useState("24");
   const [parts, setParts] = useState([]);
   const [newPart, setNewPart] = useState({
     title: "",
     description: "",
-    uses: "", // Added uses field
-    model: null
+    uses: "",
+    model: null,
   });
-  
+
   const mainModelInputRef = useRef(null);
-  const modelCoverInputRef = useRef(null); // New ref for model cover
+  const modelCoverInputRef = useRef(null);
   const partModelInputRef = useRef(null);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const newModel = {
-      id: Date.now(), // Simple unique ID
-      title,
-      description,
-      category,
-      mainModel: mainModel?.name || "No model uploaded",
-      modelCover: modelCover?.name || "No cover image", // Add model cover to the new model
-      keyframes,
-      framesPerSecond,
-      parts,
-      createdAt: new Date().toLocaleDateString("en-US", {
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-      }),
-      views: 0,
-      isPublished: false,
-    };
-    onModelCreated(newModel);
-    // Reset form
-    setTitle("");
-    setDescription("");
-    setCategory("");
-    setMainModel(null);
-    setModelCover(null); // Reset model cover
-    setKeyframes("");
-    setFramesPerSecond("24");
-    setParts([]);
+
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('description', description);
+    formData.append('category', category);
+    formData.append('keyframes', keyframes);
+    formData.append('framesPerSecond', framesPerSecond);
+    formData.append('instructorId', '67f165a67842caeef1967a69'); // Replace with actual instructor ID from auth
+
+    if (mainModel) {
+      formData.append('mainModel', mainModel);
+    }
+    if (modelCover) {
+      formData.append('modelCover', modelCover);
+    }
+
+    const partsData = parts.map(part => ({
+      title: part.title,
+      description: part.description,
+      uses: part.uses, // Include uses field
+    }));
+    formData.append('partsData', JSON.stringify(partsData));
+    parts.forEach(part => {
+      if (part.model) {
+        formData.append('parts', part.model);
+      }
+    });
+
+    try {
+      const response = await fetch('http://localhost:8080/create-model', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include', // If using auth with cookies
+      });
+
+      if (!response.ok) throw new Error('Failed to create model');
+      const result = await response.json();
+
+      const newModel = {
+        id: result.modelId,
+        title,
+        description,
+        category,
+        mainModel: mainModel?.name || "No model uploaded",
+        modelCover: modelCover?.name || "No cover image",
+        keyframes,
+        framesPerSecond,
+        parts,
+        createdAt: new Date().toLocaleDateString("en-US", {
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+        }),
+        views: 0,
+        isPublished: false,
+      };
+      onModelCreated(newModel);
+
+      // Reset form
+      setTitle("");
+      setDescription("");
+      setCategory("");
+      setMainModel(null);
+      setModelCover(null);
+      setKeyframes("");
+      setFramesPerSecond("24");
+      setParts([]);
+    } catch (error) {
+      console.error('Error creating model:', error);
+      alert('Failed to create model');
+    }
   };
 
   const handleUploadClick = (inputRef) => {
@@ -67,8 +110,8 @@ function CreateModelForm({ onModelCreated, onCancel }) {
       setNewPart({
         title: "",
         description: "",
-        uses: "", // Reset uses field
-        model: null
+        uses: "",
+        model: null,
       });
     }
   };

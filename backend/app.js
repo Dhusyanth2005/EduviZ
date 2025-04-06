@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const session = require('express-session');
 const passport = require('./middleware/passport');
+const mongoose = require('./config/db');
 const chatRoutes = require('./routes/chatRoutes');
 const modelRoutes = require('./routes/modelRoutes');
 const authRoutes = require('./routes/authRoutes');
@@ -11,22 +12,14 @@ require('dotenv').config();
 
 const app = express();
 
-// Razorpay instance with error handling
-let razorpayInstance;
-try {
-  if (!process.env.RAZORPAY_API_KEY || !process.env.RAZORPAY_API_SECRET) {
-    console.error('Razorpay API keys are missing in environment variables');
-  } else {
-    razorpayInstance = new Razorpay({
-      key_id: process.env.RAZORPAY_API_KEY,
-      key_secret: process.env.RAZORPAY_API_SECRET,
-    });
-    // Initialize the Razorpay instance in the payment routes
-    initializeRazorpay(razorpayInstance);
-  }
-} catch (error) {
-  console.error('Failed to initialize Razorpay:', error.message);
-}
+// Initialize Razorpay instance
+const razorpayInstance = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET
+});
+
+// Initialize the Razorpay instance in the payment routes
+initializeRazorpay(razorpayInstance);
 
 // CORS setup
 app.use(cors({
@@ -38,7 +31,7 @@ app.use(cors({
 
 app.use(express.json());
 
-// Session and Passport only for auth routes
+// Session and Passport middleware for all routes
 const sessionMiddleware = session({
   secret: process.env.SESSION_SECRET,
   resave: false,
@@ -49,14 +42,21 @@ const sessionMiddleware = session({
   }
 });
 
-app.use('/auth', sessionMiddleware);
-app.use('/auth', passport.initialize());
-app.use('/auth', passport.session());
+// Apply session and passport middleware to all routes
+app.use(sessionMiddleware);
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Routes
 app.use(chatRoutes);
 app.use(modelRoutes);
 app.use(authRoutes);
 app.use(paymentRoutes);
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Something went wrong!' });
+});
 
 module.exports = app;
