@@ -15,16 +15,8 @@ const chat = async (req, res) => {
   }
 
   try {
-    const prompt = `
-      You’re an educational AI assistant designed for students learning about engineering and materials science. The user asked: "${userMessage}". Respond based on this context: The ${preloadedData.item} is described as follows: ${preloadedData.details}. Provide a detailed, study-based response in a point-by-point format using emojis to make it engaging. Each point should teach something valuable about the part, its manufacturing, materials, or usage in a bicycle. Keep the tone conversational and encouraging for learning!
-
-      Format your response as HTML with proper line breaks and tags, like this:
-      <p>🧠 <strong>Key Fact</strong>: [Educational fact about the part]</p>
-      <p>🔧 <strong>How It’s Made</strong>: [A step or detail about manufacturing]</p>
-      <p>🛠️ <strong>Material Spotlight</strong>: [Detail about the material and why it’s used]</p>
-      <p>🚴 <strong>Why It Matters</strong>: [How this part impacts the bicycle’s performance or functionality]</p>
-      <p>📚 <strong>Fun Fact</strong>: [An interesting tidbit to keep the student engaged]</p>
-    `;
+    const prompt = `You're an educational AI assistant for engineering and materials science. Analyze this component: ${preloadedData.item}. Based on these details: ${preloadedData.details}, create an engaging educational explanation. Format your response as HTML with point-by-point information using emojis. Focus on what this part is, how it functions, its materials, and why it's important. Keep the tone conversational and educational, helping students understand this specific component thoroughly.
+    don't fix any static method to respose, just return the respose what you get form user message`;
 
     const result = await model.generateContent(prompt);
     const speech = result.response.text();

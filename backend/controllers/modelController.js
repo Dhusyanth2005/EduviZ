@@ -77,6 +77,50 @@ const listModels = async (req, res) => {
   }
 };
 
+const fetchModelsByInstructor = async (req, res) => {
+  const { instructorId } = req.params;
+  const gfs = getGfs();
+  if (!gfs) return res.status(503).send('Database not ready');
+
+  try {
+    const models = await Model.find({ instructorId }).lean();
+    if (!models.length) {
+      return res.json([]); // Return empty array if no models found
+    }
+
+    // Enrich with GridFS file data using IDs only
+    const enrichedModels = await Promise.all(
+      models.map(async (model) => {
+        return {
+          id: model._id,
+          title: model.title,
+          description: model.description,
+          category: model.category,
+          mainModel: model.mainModel, // Use ID instead of originalName
+          modelCover: model.modelCover, // Use ID instead of originalName
+          keyframes: model.keyframes,
+          framesPerSecond: model.framesPerSecond,
+          parts: model.parts.map(part => ({
+            title: part.title,
+            description: part.description,
+            uses: part.uses,
+            model: part.model // Keep as ID
+          })),
+          createdAt: model.createdAt,
+          instructorId: model.instructorId,
+          views: model.views || 0, // Add logic if you track views
+          isPublished: model.isPublished || false // Add logic if you implement publishing
+        };
+      })
+    );
+
+    res.json(enrichedModels);
+  } catch (error) {
+    console.error('Error fetching models by instructor:', error);
+    res.status(500).send('Error fetching models');
+  }
+};
+
 const createModel = async (req, res) => {
   const gfs = getGfs();
   if (!gfs) return res.status(503).send('Database not ready');
@@ -88,7 +132,8 @@ const createModel = async (req, res) => {
       category,
       keyframes,
       framesPerSecond,
-      instructorId, // Assuming this comes from authenticated user
+      instructorId,
+      partsData
     } = req.body;
 
     const mainModelFile = req.files['mainModel'] ? req.files['mainModel'][0] : null;
@@ -110,7 +155,7 @@ const createModel = async (req, res) => {
     });
 
     // Upload model cover to GridFS (optional)
-    let modelCoverId = 'default_cover.jpg';
+    let modelCoverId = null;
     if (modelCoverFile) {
       const modelCoverFileName = `${Date.now()}-${modelCoverFile.originalname}`;
       const coverUploadStream = gfs.openUploadStream(modelCoverFileName, {
@@ -125,9 +170,9 @@ const createModel = async (req, res) => {
     }
 
     // Upload part models to GridFS
-    const partsData = JSON.parse(req.body.partsData || '[]');
+    const partsDataParsed = JSON.parse(partsData || '[]');
     const uploadedParts = await Promise.all(
-      partsData.map(async (part, index) => {
+      partsDataParsed.map(async (part, index) => {
         const partFile = partFiles[index];
         if (!partFile) throw new Error(`Missing file for part: ${part.title}`);
 
@@ -145,7 +190,7 @@ const createModel = async (req, res) => {
         return {
           title: part.title,
           description: part.description,
-          uses: part.uses || '', // Include uses field
+          uses: part.uses || '',
           model: partModelId,
         };
       })
@@ -157,19 +202,34 @@ const createModel = async (req, res) => {
       description,
       category,
       mainModel: mainModelId,
-      modelCover: modelCoverId,
+      modelCover: modelCoverId || 'default_cover.jpg', // Use ID or default
       keyframes,
       framesPerSecond,
       parts: uploadedParts,
-      instructorId, // Replace with actual instructor ID from auth
+      instructorId,
+      createdAt: new Date(),
+      views: 0,
+      isPublished: false,
     });
 
     await newModel.save();
-    res.status(201).json({ message: 'Model created successfully', modelId: newModel._id });
+
+    // Update user's createdCourses
+    await Model.updateOne(
+      { _id: newModel._id },
+      { $push: { createdCourses: newModel._id } },
+      { upsert: true }
+    );
+
+    res.status(201).json({
+      message: 'Model created successfully',
+      modelId: newModel._id,
+      modelCover: modelCoverId || 'default_cover.jpg', // Return ID for frontend
+    });
   } catch (error) {
     console.error('Create model error:', error);
     res.status(500).send('Error creating model');
   }
 };
 
-module.exports = { uploadModel, fetchModel, listModels, createModel };
+module.exports = { uploadModel, fetchModel, listModels, createModel, fetchModelsByInstructor };

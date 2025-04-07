@@ -243,18 +243,18 @@ const RoleSelection = () => {
 
   const handleRoleSelection = async (role) => {
     setLoading(true);
-    setError('');
-
+    setError("");
+  
     const backendRole = role === "student" ? "learner" : "instructor";
-    const token = localStorage.getItem('token');
-
+    const token = localStorage.getItem("token");
+  
     if (!token) {
       setError("No authentication token found. Please log in again.");
       setLoading(false);
       navigate("/login");
       return;
     }
-
+  
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_API_URL}/api/select-role`,
@@ -265,20 +265,19 @@ const RoleSelection = () => {
           },
         }
       );
-
+  
       const { token: newToken } = response.data;
-      localStorage.setItem('token', newToken);
-
-      alert(t('roleSuccess'));
+      localStorage.setItem("token", newToken);
+  
+      alert(t("roleSuccess"));
       navigate(backendRole === "learner" ? "/dashboard" : "/instructor");
     } catch (err) {
-      setError(t('roleError'));
+      setError(t("roleError"));
       console.error("Role selection error:", err.response?.data || err.message);
     } finally {
       setLoading(false);
     }
   };
-
   return (
     <div className="RoleSection">
       <div

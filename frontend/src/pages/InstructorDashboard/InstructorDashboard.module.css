@@ -760,16 +760,31 @@
   }
   
   .coursePreviewIcon {
-    width: 48px;
-    height: 48px;
-    background: linear-gradient(135deg, #6617cb, #cb17a3);
-    color: white;
+    position: relative;
+    width: 80px; /* Adjust size as needed */
+    height: 80px;
+    overflow: hidden;
+    border-radius: 8px;
+    margin-right: 15px;
+  }
+  
+  .recentModelImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+  
+  .modelPlaceholder {
+    width: 100%;
+    height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 10px;
-    font-weight: 600;
-    flex-shrink: 0;
+    background-color: #e0e0e0;
+    font-size: 24px;
+    color: #666;
+    border-radius: 8px;
   }
   
   .coursePreviewInfo {
@@ -894,24 +909,31 @@
     border-color: #6617cb;
   }
   
+  .modelImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px 8px 0 0;
+  }
+  
   .modelImageContainer {
     position: relative;
-    height: 160px;
-    background: rgba(26, 26, 26, 0.9);
+    width: 100%;
+    height: 150px;
+    overflow: hidden;
   }
   
   .modelPlaceholder {
     width: 100%;
     height: 100%;
     display: flex;
-    justify-content: center;
     align-items: center;
-    font-size: 36px;
-    font-weight: bold;
-    color: #fff;
-    background: linear-gradient(135deg, #6617cb, #cb17a3);
+    justify-content: center;
+    background-color: #e0e0e0;
+    font-size: 24px;
+    color: #666;
+    border-radius: 8px 8px 0 0;
   }
-  
   .modelBadge {
     position: absolute;
     top: 12px;

@@ -220,6 +220,7 @@ const SettingsPage = () => {
   const LogoutConfirmation = () => {
     const handleLogout = () => {
       alert('Logging out...');
+      localStorage.removeItem('token'); // Clear user token from local storage
       // Implement actual logout logic here
     };
 

@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { bicycleData } from '../../bicycleData'; // Assuming this now imports the updated data with `description`
+import React, { useState, useEffect } from 'react'; 
 import styles from './ModelDescription.module.css';
 import axios from 'axios';
 
-function ModelDescription({ selectedPart, isDarkMode }) {
+function ModelDescription({ selectedPart, isDarkMode, data }) {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [message, setMessage] = useState('');
   const [chat, setChat] = useState([]);
@@ -11,20 +10,20 @@ function ModelDescription({ selectedPart, isDarkMode }) {
   useEffect(() => {
     if (selectedPart) {
       setChat([]);
-      const partInfo = bicycleData.parts[selectedPart] || {};
+      const partInfo = data.parts[selectedPart] || {};
       const preloadData = async () => {
         try {
           await axios.post('http://localhost:8080/preload', {
             data: {
               item: partInfo.name || 'Unknown Part',
-              details: partInfo.description || 'No description available.', // Use the new description field
+              details: partInfo.description || 'No description available.',
             },
           });
           if (isChatOpen) {
             setChat([
               {
                 sender: 'bot',
-                text: "Hello! I'm EduViz AI, here to help you learn about bicycle parts. Type 'start' to get a fun overview, or ask me anything about the selected part!",
+                text: `Hello! I'm EduViz AI, here to help you learn about ${partInfo.name}. Type 'start' to know more about this part, or ask me anything about the selected part!`,
               },
             ]);
           }
@@ -34,50 +33,89 @@ function ModelDescription({ selectedPart, isDarkMode }) {
       };
       preloadData();
     }
-  }, [selectedPart]);
+  }, [selectedPart, data, isChatOpen]);
 
   useEffect(() => {
     if (isChatOpen && chat.length === 0 && selectedPart) {
+      const partInfo = data.parts[selectedPart] || {};
       setChat([
         {
           sender: 'bot',
-          text: "Hello! I'm EduViz AI, here to help you learn about bicycle parts. Type 'start' to get a fun overview, or ask me anything about the selected part!",
+          text: `Hello! I'm EduViz AI, here to help you learn about ${partInfo.name}. Type 'start' to know more about this part, or ask me anything about the selected part!`
         },
       ]);
     }
-  }, [isChatOpen, selectedPart]);
+  }, [isChatOpen, selectedPart, chat.length, data]);
 
   const sendMessage = async () => {
     if (!message) return;
 
     setChat([...chat, { sender: 'user', text: message }]);
-
-    try {
-      const response = await axios.post('http://localhost:8080/chat', { message });
-      const botReply = response.data.reply;
-
-      if (typeof botReply === 'string') {
-        setChat((prev) => [...prev, { sender: 'bot', text: botReply }]);
-      } else if (botReply.detailedExplanation) {
-        setChat((prev) => [
-          ...prev,
-          { sender: 'bot', text: `**Detailed Explanation:** ${botReply.detailedExplanation}` },
-          { sender: 'bot', text: botReply.nextStep },
-        ]);
-      } else {
-        setChat((prev) => [
-          ...prev,
-          { sender: 'bot', text: `**Description:** ${botReply.description}` },
-          { sender: 'bot', text: `**Speech:** ${botReply.speech}` },
-          { sender: 'bot', text: botReply.nextStep },
-        ]);
+    
+    // Check if it's just a greeting
+    const greetings = ['hi', 'hello', 'hey', 'greetings', 'howdy', 'hola', 'hi there'];
+    const userMsg = message.toLowerCase().trim();
+    
+    if (greetings.includes(userMsg) || greetings.some(greeting => userMsg.startsWith(greeting + ' '))) {
+      // Handle greeting locally without detailed API response
+      const partInfo = data.parts[selectedPart] || {};
+      setChat(prev => [...prev, { 
+        sender: 'bot', 
+        text: `Hello! I'm EduViz AI, here to help you learn about ${partInfo.name || 'this part'}. Type 'start' to learn more, or ask me a specific question about it!` 
+      }]);
+      setMessage('');
+      return;
+    }
+    
+    // Process "start" command locally
+    if (userMsg === 'start') {
+      try {
+        const response = await axios.post('http://localhost:8080/chat', { 
+          message: `Tell me about the ${data.parts[selectedPart]?.name || 'selected part'}`
+        });
+        const botReply = response.data.reply;
+        processResponse(botReply);
+      } catch (error) {
+        console.error('Chat error:', error);
+        setChat((prev) => [...prev, { sender: 'bot', text: 'Oops, something went wrong!' }]);
       }
-    } catch (error) {
-      console.error('Chat error:', error);
-      setChat((prev) => [...prev, { sender: 'bot', text: 'Oops, something went wrong!' }]);
+    } else {
+      // Normal message processing
+      try {
+        const response = await axios.post('http://localhost:8080/chat', { message });
+        const botReply = response.data.reply;
+        processResponse(botReply);
+      } catch (error) {
+        console.error('Chat error:', error);
+        setChat((prev) => [...prev, { sender: 'bot', text: 'Oops, something went wrong!' }]);
+      }
     }
 
     setMessage('');
+  };
+  
+  const processResponse = (botReply) => {
+    if (typeof botReply === 'string') {
+      setChat((prev) => [...prev, { sender: 'bot', text: botReply }]);
+    } else if (botReply.detailedExplanation) {
+      setChat((prev) => [
+        ...prev,
+        { sender: 'bot', text: botReply.detailedExplanation }
+      ]);
+      if (botReply.nextStep) {
+        setChat((prev) => [...prev, { sender: 'bot', text: botReply.nextStep }]);
+      }
+    } else {
+      if (botReply.description) {
+        setChat((prev) => [...prev, { sender: 'bot', text: botReply.description }]);
+      }
+      if (botReply.speech) {
+        setChat((prev) => [...prev, { sender: 'bot', text: botReply.speech }]);
+      }
+      if (botReply.nextStep) {
+        setChat((prev) => [...prev, { sender: 'bot', text: botReply.nextStep }]);
+      }
+    }
   };
 
   const toggleChat = () => setIsChatOpen(!isChatOpen);
@@ -87,7 +125,7 @@ function ModelDescription({ selectedPart, isDarkMode }) {
       <div className={`${styles.descriptionContainer} ${isDarkMode ? styles.dark : ''}`}>
         <div className={styles.description}>
           <h2>Welcome to EduViz</h2>
-          <p>Select a bicycle part from the drawer to learn about its description.</p>
+          <p>Select a part from the drawer to learn about its description.</p>
           <button className={styles.chatButton} onClick={toggleChat}>
             💬
           </button>
@@ -106,7 +144,7 @@ function ModelDescription({ selectedPart, isDarkMode }) {
     );
   }
 
-  const partInfo = bicycleData.parts[selectedPart] || {};
+  const partInfo = data.parts[selectedPart] || {};
   const descriptionLines = partInfo.description
     ? partInfo.description.split('. ').map((line) => line.trim() + '.') // Split into sentences
     : [];
@@ -136,10 +174,8 @@ function ModelDescription({ selectedPart, isDarkMode }) {
             </ol>
             <h3>Usage:</h3>
             <p>
-              This {partInfo.name?.toLowerCase() || 'part'} is a key component of the bicycle, contributing to its overall
-              functionality and performance.
+              {partInfo.usage || 'No usage information available.'}
             </p>
-            
             <button className={styles.chatButton} onClick={toggleChat}>
               💬
             </button>
@@ -150,7 +186,6 @@ function ModelDescription({ selectedPart, isDarkMode }) {
   );
 }
 
-// ChatUI component remains unchanged
 function ChatUI({ chat, message, setMessage, sendMessage, toggleChat, isDarkMode }) {
   const formatTime = () => {
     const now = new Date();

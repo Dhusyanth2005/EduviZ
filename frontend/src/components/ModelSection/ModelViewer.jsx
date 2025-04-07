@@ -13,25 +13,25 @@ function ModelViewer({ modelSrc, isPlaying, showDetailView, onLoad }) {
         modelViewerRef.current.pause();
       }
       
-      // Set much larger max camera orbit distance (300% of model size)
       modelViewerRef.current.maxCameraOrbit = "auto auto 300%";
       
-      // Initialize with a moderate distance
-      modelViewerRef.current.cameraOrbit = "0deg 75deg 100%";
+      // Set initial camera orbit only on first load
+      if (!modelViewerRef.current.hasAttribute('data-initialized')) {
+        modelViewerRef.current.cameraOrbit = "0deg 75deg 100%";
+        modelViewerRef.current.setAttribute('data-initialized', 'true');
+      }
       
       onLoad(modelViewerRef);
     }
   }, [isPlaying, showDetailView, onLoad]);
 
-  // Add wheel listener for enhanced zoom functionality
   useEffect(() => {
     const viewer = modelViewerRef.current;
     if (!viewer) return;
 
     const handleWheel = (event) => {
-      if (event.deltaY > 0) { // Scrolling down/away (zoom out)
+      if (event.deltaY > 0) {
         const orbitValues = viewer.getCameraOrbit();
-        // Allow zooming out much further than default
         const newRadius = Math.min(orbitValues.radius * 1.2, orbitValues.radius + 5);
         viewer.cameraOrbit = `${orbitValues.theta}rad ${orbitValues.phi}rad ${newRadius}m`;
       }
@@ -56,5 +56,4 @@ function ModelViewer({ modelSrc, isPlaying, showDetailView, onLoad }) {
     />
   );
 }
-
 export default ModelViewer;

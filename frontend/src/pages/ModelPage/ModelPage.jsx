@@ -3,9 +3,8 @@ import ModelViewer from "../../components/ModelSection/ModelViewer";
 import ModelDescription from "../../components/ModelSection/ModelDescription";
 import { FaSun, FaMoon, FaExpand, FaCompress, FaCamera, FaRedo, FaSearchPlus, FaSearchMinus } from 'react-icons/fa';
 import styles from './ModelPage.module.css';
-import { bicycleData } from '../../bicycleData';
 
-export default function ModelPage() {
+export default function ModelPage({data}) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [showDetailView, setShowDetailView] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -18,12 +17,12 @@ export default function ModelPage() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const appRef = useRef(null);
 
-  const parts = Object.keys(bicycleData.parts);
+  const parts = Object.keys(data.parts);
   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
   useEffect(() => {
     const fetchModel = async () => {
-      const url = `${apiUrl}/model/${bicycleData.fullviewModel}`;
+      const url = `${apiUrl}/model/${data.fullviewModel}`;
       console.log('Fetching full model from:', url); // Debug log
       try {
         const response = await fetch(url, { credentials: 'include' });
@@ -43,7 +42,7 @@ export default function ModelPage() {
   }, [apiUrl]);
 
   const handlePartSelect = async (part) => {
-    const partFileId = bicycleData.parts[part].modelId;
+    const partFileId = data.parts[part].modelId;
     const url = `${apiUrl}/model/${partFileId}`;
     console.log('Fetching part model from:', url); // Debug log
     try {
@@ -68,14 +67,20 @@ export default function ModelPage() {
     if (modelViewerRef && modelViewerRef.current) {
       const animations = modelViewerRef.current.availableAnimations;
       if (animations.length > 0) {
+        // Save the current camera orbit before playing animation
+        const currentOrbit = modelViewerRef.current.getCameraOrbit();
+        
         modelViewerRef.current.animationName = animations[0];
         modelViewerRef.current.play();
         setIsPlaying(true);
+        
         setTimeout(() => {
           modelViewerRef.current.pause();
           setIsPlaying(false);
           setIsDismantleMode(!isDismantleMode);
-        }, 2500);
+          // Restore the camera orbit to its position before animation
+          modelViewerRef.current.cameraOrbit = `${currentOrbit.theta}rad ${currentOrbit.phi}rad ${currentOrbit.radius}m`;
+        }, 2500); // Your original fixed duration
       }
     }
   };
@@ -83,7 +88,7 @@ export default function ModelPage() {
   const handleBackClick = async () => {
     setShowDetailView(false);
     setSelectedPart(null);
-    const url = `${apiUrl}/model/${bicycleData.fullviewModel}`;
+    const url = `${apiUrl}/model/${data.fullviewModel}`;
     try {
       const response = await fetch(url, { credentials: 'include' });
       if (!response.ok) throw new Error('Failed to fetch full model');
@@ -113,7 +118,7 @@ export default function ModelPage() {
     if (modelViewerRef && modelViewerRef.current) {
       const url = modelViewerRef.current.toDataURL();
       const link = document.createElement("a");
-      link.download = `${selectedPart || "bicycle"}-screenshot.png`;
+      link.download = `${data.name || "bicycle"}-screenshot.png`;
       link.href = url;
       link.click();
     }
@@ -130,31 +135,21 @@ export default function ModelPage() {
   // Zoom controls for model-viewer
   const zoomIn = () => {
     if (modelViewerRef && modelViewerRef.current) {
-      // Get current camera orbit values
       const orbitValues = modelViewerRef.current.getCameraOrbit();
-      // The radius is the third value (distance from target)
       const currentRadius = orbitValues.radius;
-      // Decrease radius to zoom in (move camera closer to model)
-      const newRadius = Math.max(currentRadius * 0.8, 1); // Prevent zooming in too close
-      // Keep the same theta and phi angles, just change the radius
+      const newRadius = Math.max(currentRadius * 0.8, 1);
       modelViewerRef.current.cameraOrbit = `${orbitValues.theta}rad ${orbitValues.phi}rad ${newRadius}m`;
     }
   };
 
   const zoomOut = () => {
     if (modelViewerRef && modelViewerRef.current) {
-      // Get current camera orbit values
       const orbitValues = modelViewerRef.current.getCameraOrbit();
-      // The radius is the third value (distance from target)
       const currentRadius = orbitValues.radius;
-      // Increase radius to zoom out (move camera away from model)
       const newRadius = currentRadius * 1.5;
-      // Keep the same theta and phi angles, just change the radius
       modelViewerRef.current.cameraOrbit = `${orbitValues.theta}rad ${orbitValues.phi}rad ${newRadius}m`;
     }
   };
-
-
 
   const toggleDrawer = () => setIsDrawerOpen(!isDrawerOpen);
   const toggleTheme = () => setIsDarkMode(!isDarkMode);
@@ -185,7 +180,7 @@ export default function ModelPage() {
                 onClick={() => handlePartSelect(part)}
                 className={selectedPart === part ? styles.selected : ''}
               >
-                {bicycleData.parts[part].name}
+                {data.parts[part].name}
               </li>
             ))}
           </ul>
@@ -209,7 +204,6 @@ export default function ModelPage() {
         )}
       </div>
       
-      {/* Viewer controls section - only visible in full view */}
       {!showDetailView && (
         <div className={styles.viewerControls}>
           <button onClick={toggleFullscreen} className={styles.controlButton}>
@@ -221,7 +215,6 @@ export default function ModelPage() {
           <button onClick={resetModelView} className={styles.controlButton}>
             <FaRedo />
           </button>
-          {/* Zoom controls */}
           <button onClick={zoomIn} className={styles.controlButton} title="Zoom In">
             <FaSearchPlus />
           </button>
@@ -261,7 +254,7 @@ export default function ModelPage() {
             )}
           </div>
           <div className={styles.descriptionContainer}>
-            <ModelDescription selectedPart={selectedPart} isDarkMode={isDarkMode} />
+            <ModelDescription selectedPart={selectedPart} isDarkMode={isDarkMode} data={data} />
           </div>
         </div>
       )}

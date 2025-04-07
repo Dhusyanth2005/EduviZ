@@ -1,6 +1,6 @@
 const express = require('express');
 const passport = require('../middleware/passport');
-const { logout, authStatus, getUser, sendOTP, verifyOTP, signup, login, selectRole } = require('../controllers/authController');
+const { logout, authStatus, getUser, sendOTP, verifyOTP, signup, login, selectRole,updateCreatedCourses } = require('../controllers/authController');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 
@@ -49,5 +49,6 @@ router.post('/api/verify-otp', verifyOTP);
 router.post('/api/signup', signup);
 router.post('/api/login', login);
 router.post('/api/select-role', authenticateJWT, selectRole);
+router.post('/api/users/update-created-courses', authenticateJWT, updateCreatedCourses);
 
 module.exports = router;

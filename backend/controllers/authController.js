@@ -270,5 +270,30 @@ const selectRole = async (req, res) => {
     res.status(500).json({ error: 'Failed to assign role' });
   }
 };
+const updateCreatedCourses = async (req, res) => {
+  const { modelId } = req.body;
+  const userId = req.user.id; // From JWT middleware
 
-module.exports = { logout, authStatus, getUser, sendOTP, verifyOTP, signup, login, selectRole };
+  if (!modelId) {
+    return res.status(400).json({ error: 'Model ID is required' });
+  }
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Add modelId to createdCourses if not already present
+    if (!user.createdCourses.includes(modelId)) {
+      user.createdCourses.push(modelId);
+      await user.save();
+    }
+
+    res.json({ message: 'Created courses updated successfully' });
+  } catch (error) {
+    console.error('Error updating created courses:', error);
+    res.status(500).json({ error: 'Failed to update created courses' });
+  }
+};
+module.exports = { logout, authStatus, getUser, sendOTP, verifyOTP, signup, login, selectRole, updateCreatedCourses };

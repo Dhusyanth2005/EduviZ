@@ -1,11 +1,12 @@
 const express = require('express');
-const { uploadModel, fetchModel, listModels, createModel } = require('../controllers/modelController');
+const { uploadModel, fetchModel, listModels, createModel,fetchModelsByInstructor } = require('../controllers/modelController');
 const upload = require('../middleware/multerConfig');
 const router = express.Router();
 
 router.post('/upload-model', upload.single('model'), uploadModel);
 router.get('/model/:id', fetchModel);
 router.get('/models', listModels);
+router.get('/api/models/instructor/:instructorId', fetchModelsByInstructor);
 router.post(
   '/create-model',
   upload.fields([
