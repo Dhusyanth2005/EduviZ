@@ -10,6 +10,8 @@ import InstructorDashboard from './pages/InstructorDashboard/InstructorDashboard
 import ModelEnrollPage from './pages/ModelEnrollPage/ModelEnrollPage.jsx';
 import { bicycleData } from './bicycleData.js';
 import { cpuData } from './cpuData.js';
+import { microchipData } from './microChipData.js';
+
 
 const App = () => {
   // Simple authentication check (replace with real auth logic)
@@ -131,12 +133,13 @@ const App = () => {
         <Route path="/" element={<HomePage />} />
         <Route path="/cycle" element={<ModelPage data={bicycleData} />} /> {/* Changed to data prop */}
         <Route path="/cpu" element={<ModelPage data={cpuData} />} /> {/* Changed to data prop */}
+        <Route path="/chip" element={<ModelPage data={microchipData} />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignUpPage />} />
         <Route path="/model/:modelId" element={<ModelEnrollPage marketplaceModels={marketplaceModels} />} />
         <Route path='/RoleSelection' element={<RoleSelection />} />
         <Route
-          path="/dashboard"
+          path="/learner"
           element={isAuthenticated() ? <LearnerDashboard marketplaceModels={marketplaceModels}/> : <Navigate to="/login" />}
         />
         <Route path='/instructor' element={<InstructorDashboard/>}/>

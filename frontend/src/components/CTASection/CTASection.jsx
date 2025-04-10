@@ -1,7 +1,6 @@
-// components/CTASection/CTASection.jsx
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import styles from '../../pages/HomePage/HomePage.module.css'; // Use the component-specific CSS
+import styles from './CTASection.module.css'; // Use the component-specific CSS
 
 const CTASection = () => {
   const [selectedLanguage, setSelectedLanguage] = useState('en');
@@ -39,7 +38,7 @@ const CTASection = () => {
     }
   };
 
-  const t = (key) => translations[selectedLanguage][key];
+  const t = (key) => translations[selectedLanguage][key] || translations['en'][key];
 
   useEffect(() => {
     // Load initial language from localStorage
@@ -48,7 +47,7 @@ const CTASection = () => {
       setSelectedLanguage(savedLanguage);
     }
 
-    // Listen for language changes from Footer
+    // Listen for language changes from Footer or other components
     const handleLanguageChange = (e) => {
       if (e.key === 'preferredLanguage') {
         setSelectedLanguage(e.newValue || 'en');
@@ -84,14 +83,24 @@ const CTASection = () => {
 
   return (
     <section id="cta-section" className={styles.ctaSection}>
-      <div className={styles.container}>
-        <div className={styles.ctaContent}>
-          <h2 className={styles.ctaTitle}>{t('title')}</h2>
-          <p className={styles.ctaText}>{t('subtitle')}</p>
-          <div className={styles.ctaButtons}>
-            <Link to="/signup" className={styles.btnPrimary}>{t('ctaButton')}</Link>
-            <Link to="/creators" className={styles.btnSecondary}>{t('learnButton')}</Link>
-          </div>
+      {/* Particle Effects */}
+      <div className={styles.particles}>
+        <div className={styles.particle}></div>
+        <div className={styles.particle}></div>
+        <div className={styles.particle}></div>
+        <div className={styles.particle}></div>
+        <div className={styles.particle}></div>
+      </div>
+      {/* Decorative Circles */}
+      <div className={`${styles.decorativeCircle} ${styles.circle1}`}></div>
+      <div className={`${styles.decorativeCircle} ${styles.circle2}`}></div>
+      {/* Main Content */}
+      <div className={styles.ctaContent}>
+        <h2 className={styles.ctaTitle}>{t('title')}</h2>
+        <p className={styles.ctaText}>{t('subtitle')}</p>
+        <div className={styles.ctaButtons}>
+          <Link to="/signup" className={styles.btnPrimary}>{t('ctaButton')}</Link>
+          <Link to="/creators" className={styles.btnSecondary}>{t('learnButton')}</Link>
         </div>
       </div>
     </section>

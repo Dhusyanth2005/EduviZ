@@ -120,7 +120,18 @@ const fetchModelsByInstructor = async (req, res) => {
     res.status(500).send('Error fetching models');
   }
 };
-
+const getAllModels = async (req, res) => {
+  try {
+    const models = await Model.find().lean(); // Fetch all models from the Model collection
+    if (!models.length) {
+      return res.status(404).json({ message: 'No models found' });
+    }
+    res.json(models);
+  } catch (error) {
+    console.error('Error fetching all models:', error);
+    res.status(500).send('Error fetching models');
+  }
+};
 const createModel = async (req, res) => {
   const gfs = getGfs();
   if (!gfs) return res.status(503).send('Database not ready');
@@ -232,4 +243,4 @@ const createModel = async (req, res) => {
   }
 };
 
-module.exports = { uploadModel, fetchModel, listModels, createModel, fetchModelsByInstructor };
+module.exports = { uploadModel, fetchModel, listModels, createModel, fetchModelsByInstructor, getAllModels };

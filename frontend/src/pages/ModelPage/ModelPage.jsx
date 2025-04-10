@@ -80,7 +80,7 @@ export default function ModelPage({data}) {
           setIsDismantleMode(!isDismantleMode);
           // Restore the camera orbit to its position before animation
           modelViewerRef.current.cameraOrbit = `${currentOrbit.theta}rad ${currentOrbit.phi}rad ${currentOrbit.radius}m`;
-        }, 2500); // Your original fixed duration
+        }, data.ms); // Your original fixed duration
       }
     }
   };

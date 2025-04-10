@@ -1,45 +1,95 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styles from "./LearnerDashboard.module.css";
-import img from "../../images/img.jpg";
+import img from "../../images/img.jpg"; // Default fallback image
 import { useNavigate } from "react-router-dom";
-
 import SettingsPage from "./SettingPage/SettingsPage";
 
 function LearnerDashboard({ marketplaceModels }) {
   const [activeMenuItem, setActiveMenuItem] = useState("Welcome");
-  const Navigate = useNavigate();
+  const [createdModels, setCreatedModels] = useState([]); // State for fetched models
+  const navigate = useNavigate();
+
+  // Fetch all models with full schema content and handle modelCover images
+  useEffect(() => {
+    const fetchAllModels = async () => {
+      const token = localStorage.getItem("token");
+      if (token) {
+        try {
+          const base64Url = token.split(".")[1];
+          const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+          const jsonPayload = decodeURIComponent(
+            atob(base64)
+              .split("")
+              .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+              .join("")
+          );
+          const userData = JSON.parse(jsonPayload);
+
+          const response = await fetch("http://localhost:8080/api/models/all", {
+            headers: { Authorization: `Bearer ${token}` },
+            credentials: "include", // Include cookies/sessions
+          });
+
+          if (!response.ok) {
+            throw new Error(`Failed to fetch models: ${response.statusText}`);
+          }
+
+          const modelData = await response.json();
+          console.log("Fetched models data:", modelData); // Debug log
+
+          // Map the fetched models and fetch modelCover images
+          const mappedModels = await Promise.all(modelData.map(async (model) => {
+            let imageUrl = img; // Default fallback
+            if (model.modelCover && model.modelCover !== 'default_cover.jpg') {
+              try {
+                const imageResponse = await fetch(`http://localhost:8080/model/${model.modelCover}`, {
+                  headers: { Authorization: `Bearer ${token}` },
+                  credentials: "include",
+                });
+                if (imageResponse.ok) {
+                  const blob = await imageResponse.blob();
+                  imageUrl = URL.createObjectURL(blob); // Create a temporary URL for the image
+                } else {
+                  console.warn(`Failed to fetch model cover for ID ${model.modelCover}: ${imageResponse.statusText}`);
+                }
+              } catch (error) {
+                console.error(`Error fetching model cover for ID ${model.modelCover}:`, error);
+              }
+            }
+
+            return {
+              id: model._id,
+              title: model.title,
+              price: "$24.99", // Hardcoded; consider adding to schema
+              imageUrl: imageUrl,
+              description: model.description,
+              isNew: (new Date() - new Date(model.createdAt)) < (7 * 24 * 60 * 60 * 1000), // Less than 7 days old
+              category: model.category,
+              views: model.views,
+              instructorId: model.instructorId,
+            };
+          }));
+          setCreatedModels(mappedModels);
+        } catch (error) {
+          console.error("Error fetching models:", error);
+          setCreatedModels([]); // Set empty array on error
+        }
+      } else {
+        console.warn("No token found, skipping model fetch");
+        setCreatedModels([]);
+      }
+    };
+
+    fetchAllModels();
+  }, []);
+
   const handleMenuClick = (menuItem) => {
     setActiveMenuItem(menuItem);
   };
- const handlebuttonmodelroute =()=>{
-    setActiveMenuItem("Marketplace")
- }
-  const recommendedModels = [
-    {
-      id: 1,
-      title: "Human Anatomy Explorer",
-      price: "$24.99",
-      imageUrl: img,
-      description: "Interactive 3D model of the human body for biology students",
-      isNew: true,
-    },
-    {
-      id: 2,
-      title: "Solar System Simulator",
-      price: "$19.99",
-      imageUrl: "/api/placeholder/200/120",
-      description: "Explore planets and orbits in a dynamic 3D environment",
-      isNew: false,
-    },
-    {
-      id: 3,
-      title: "Geometric Shapes Lab",
-      price: "$14.99",
-      imageUrl: "/api/placeholder/200/120",
-      description: "Visualize and manipulate 3D geometric forms",
-      isNew: true,
-    },
-  ];
+
+  const handlebuttonmodelroute = () => {
+    setActiveMenuItem("Marketplace");
+  };
 
   const userModels = [
     {
@@ -57,8 +107,6 @@ function LearnerDashboard({ marketplaceModels }) {
       imageUrl: "/api/placeholder/200/120",
     },
   ];
-
-  
 
   const learningProgress = {
     exploredModels: 4,
@@ -110,7 +158,7 @@ function LearnerDashboard({ marketplaceModels }) {
 
         <div className={styles.statsOverview}>
           {userStats.map((stat, index) => (
-            <div className={styles.statCard} key={index} onClick={()=>Navigate('/model')}>
+            <div className={styles.statCard} key={index} onClick={() => navigate('/model')}>
               <h2 className={styles.statValue}>{stat.value}</h2>
               <p className={styles.statLabel}>{stat.label}</p>
             </div>
@@ -124,26 +172,36 @@ function LearnerDashboard({ marketplaceModels }) {
           <button className={styles.textButton} onClick={handlebuttonmodelroute}>Browse Marketplace</button>
         </div>
         <div className={styles.modelList}>
-          {recommendedModels.map((model) => (
-            <div className={styles.modelCard} key={model.id}>
-              <div className={styles.modelImageContainer}>
-                <img
-                  src={model.imageUrl}
-                  alt={model.title}
-                  className={styles.modelImage}
-                />
-                {model.isNew && <span className={styles.modelBadge}>NEW</span>}
-              </div>
-              <div className={styles.modelContent}>
-                <h3 className={styles.modelTitle}>{model.title}</h3>
-                <p className={styles.modelDescription}>{model.description}</p>
-                <div className={styles.modelFooter}>
-                  <p className={styles.modelPrice}>{model.price}</p>
-                  <button className={styles.modelActionButton}>Details</button>
+          {createdModels.length > 0 ? (
+            createdModels.map((model) => (
+              <div className={styles.modelCard} key={model.id}>
+                <div className={styles.modelImageContainer}>
+                  <img
+                    src={model.imageUrl}
+                    alt={model.title}
+                    className={styles.modelImage}
+                    onError={(e) => { e.target.src = img; }} // Fallback to default image
+                  />
+                  {model.isNew && <span className={styles.modelBadge}>NEW</span>}
+                </div>
+                <div className={styles.modelContent}>
+                  <h3 className={styles.modelTitle}>{model.title}</h3>
+                  <p className={styles.modelDescription}>{model.description}</p>
+                  <div className={styles.modelFooter}>
+                    <p className={styles.modelPrice}>{model.price}</p>
+                    <button 
+                      className={styles.modelActionButton}
+                      onClick={() => navigate(`/model/${model.id}`)}
+                    >
+                      Details
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))
+          ) : (
+            <p className={styles.placeholderText}>No models available.</p>
+          )}
         </div>
       </div>
 
@@ -212,79 +270,77 @@ function LearnerDashboard({ marketplaceModels }) {
     </div>
   );
 
-// Update the MarketplacePage component in your LearnerDashboard.js
+  const MarketplacePage = () => {
+    const [selectedCategory, setSelectedCategory] = useState("All");
+    const categories = ["All", "Biology", "Physics", "Chemistry", "Astronomy", "Computer Science"];
 
-const MarketplacePage = () => {
-  const [selectedCategory, setSelectedCategory] = useState("All");
-  const categories = ["All", "Biology", "Physics", "Chemistry", "Astronomy", "Computer Science"];
+    const filteredModels = selectedCategory === "All" 
+      ? marketplaceModels 
+      : marketplaceModels.filter(model => model.category === selectedCategory);
 
-  const filteredModels = selectedCategory === "All" 
-    ? marketplaceModels 
-    : marketplaceModels.filter(model => model.category === selectedCategory);
+    const handleModelDetails = (modelId) => {
+      navigate(`/model/${modelId}`);
+    };
 
-  const handleModelDetails = (modelId) => {
-    Navigate(`/model/${modelId}`);
-  };
-
-  return (
-    <div className={styles.marketplacePage}>
-      <div className={styles.categoryFilter}>
-        {categories.map((category) => (
-          <button
-            key={category}
-            className={`${styles.categoryButton} ${selectedCategory === category ? styles.activeCategoryButton : ''}`}
-            onClick={() => setSelectedCategory(category)}
-          >
-            {category}
-          </button>
-        ))}
-      </div>
-
-      <div className={styles.marketplaceHeader}>
-        <h2 className={styles.sectionTitle}>3D Model Marketplace</h2>
-        <div className={styles.searchContainer}>
-          <input 
-            type="text" 
-            placeholder="Search models..." 
-            className={styles.searchInput}
-          />
+    return (
+      <div className={styles.marketplacePage}>
+        <div className={styles.categoryFilter}>
+          {categories.map((category) => (
+            <button
+              key={category}
+              className={`${styles.categoryButton} ${selectedCategory === category ? styles.activeCategoryButton : ''}`}
+              onClick={() => setSelectedCategory(category)}
+            >
+              {category}
+            </button>
+          ))}
         </div>
-      </div>
 
-      <div className={styles.modelList}>
-        {filteredModels.map((model) => (
-          <div className={styles.modelCard} key={model.id}>
-            <div className={styles.modelImageContainer}>
-              <img
-                src={model.imageUrl}
-                alt={model.title}
-                className={styles.modelImage}
-              />
-              {model.isNew && <span className={styles.modelBadge}>NEW</span>}
-              <span className={styles.difficultyBadge}>{model.difficulty}</span>
-            </div>
-            <div className={styles.modelContent}>
-              <h3 className={styles.modelTitle}>{model.title}</h3>
-              <p className={styles.modelDescription}>{model.description}</p>
-              <div className={styles.modelFooter}>
-                <div className={styles.modelMetadata}>
-                  <span className={styles.modelCategory}>{model.category}</span>
-                  <p className={styles.modelPrice}>{model.price}</p>
+        <div className={styles.marketplaceHeader}>
+          <h2 className={styles.sectionTitle}>3D Model Marketplace</h2>
+          <div className={styles.searchContainer}>
+            <input 
+              type="text" 
+              placeholder="Search models..." 
+              className={styles.searchInput}
+            />
+          </div>
+        </div>
+
+        <div className={styles.modelList}>
+          {filteredModels.map((model) => (
+            <div className={styles.modelCard} key={model.id}>
+              <div className={styles.modelImageContainer}>
+                <img
+                  src={model.imageUrl}
+                  alt={model.title}
+                  className={styles.modelImage}
+                />
+                {model.isNew && <span className={styles.modelBadge}>NEW</span>}
+                <span className={styles.difficultyBadge}>{model.difficulty}</span>
+              </div>
+              <div className={styles.modelContent}>
+                <h3 className={styles.modelTitle}>{model.title}</h3>
+                <p className={styles.modelDescription}>{model.description}</p>
+                <div className={styles.modelFooter}>
+                  <div className={styles.modelMetadata}>
+                    <span className={styles.modelCategory}>{model.category}</span>
+                    <p className={styles.modelPrice}>{model.price}</p>
+                  </div>
+                  <button 
+                    className={styles.modelActionButton}
+                    onClick={() => handleModelDetails(model.id)}
+                  >
+                    Details
+                  </button>
                 </div>
-                <button 
-                  className={styles.modelActionButton}
-                  onClick={() => handleModelDetails(model.id)}
-                >
-                  Details
-                </button>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
 
   return (
     <div className={styles.dashboardRoot}>
@@ -311,7 +367,6 @@ const MarketplacePage = () => {
               )}
             </ul>
           </nav>
-         
         </aside>
 
         <main className={styles.mainContent}>
@@ -332,7 +387,7 @@ const MarketplacePage = () => {
           {activeMenuItem === "Forum" && (
             <p className={styles.placeholderText}>Community forum coming soon!</p>
           )}
-          {activeMenuItem === "Settings" && <SettingsPage/>}
+          {activeMenuItem === "Settings" && <SettingsPage />}
         </main>
       </div>
     </div>

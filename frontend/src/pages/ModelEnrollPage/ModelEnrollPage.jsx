@@ -87,7 +87,7 @@ function ModelEnrollPage({ marketplaceModels }) {
   };
 
   const handleBackToMarketplace = () => {
-    navigate("/dashboard");
+    navigate("/learner");
   };
 
   if (loading) {

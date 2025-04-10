@@ -8,33 +8,25 @@ import 'swiper/css/pagination';
 import { FaCubes, FaLaptopCode, FaGraduationCap, FaTools, FaUniversity, FaIndustry } from 'react-icons/fa';
 import styles from './Features.module.css';
 
-// Import model-viewer script in a side-effect
+// ModelViewerComponent (if you still need it separately)
 const ModelViewerComponent = () => {
   useEffect(() => {
-    // Ensure model-viewer is defined and loaded
     if (!customElements.get('model-viewer')) {
       import('@google/model-viewer');
     }
   }, []);
 
-  return (
-    <model-viewer
-      src="/path/to/your/model.glb" // Replace with your model path
-      alt="3D model"
-      auto-rotate
-      camera-controls
-      ar
-      shadow-intensity="1"
-      environment-image="neutral"
-      exposure="0.9"
-      style={{ width: '100%', height: '100%' }}
-    />
-  );
+  return null; // We don't need to render anything here since we're using it in Swiper
 };
 
 const FeatureSection = () => {
   const [activeModelIndex, setActiveModelIndex] = useState(0);
   const [selectedLanguage, setSelectedLanguage] = useState('en');
+  const [modelLoading, setModelLoading] = useState(true);
+  const [currentModelInfo, setCurrentModelInfo] = useState({
+    title: 'Planetary System',
+    description: 'Explore orbital mechanics and planetary motion in this interactive model'
+  });
 
   const translations = {
     en: {
@@ -163,7 +155,7 @@ const FeatureSection = () => {
         },
         {
           title: "डोमेन-विशिष्ट टूल्स",
-          description: "विभिन्न विषयों के लिए विशेष इंटरैक्शन टूल्स तक पहुंच - खगोल विज्ञान से मौसम विज्ञान तक ग्रहीय भूविज्ञान विजुअलाइजेशन।"
+          description: "विभिन्न विषयों के लिए विशेष इंटरैクション टूल्स तक पहुंच - खगोल विज्ञान से मौसम विज्ञान तक ग्रहीय भूविज्ञान विजुअलाइजेशन।"
         },
         {
           title: "रिसर्च-ग्रेड एजुकेशन",
@@ -325,23 +317,31 @@ const FeatureSection = () => {
   const modelShowcases = [
     {
       id: '1',
-      modelSrc: '/public/model/cycle.glb', // Replace with actual model path
-      alt: 'Planetary System Model'
+      modelSrc: '/public/model/cycle.glb',
+      alt: 'Planetary System Model',
+      title: 'Planetary System',
+      description: 'Explore orbital mechanics and planetary motion in this interactive model'
     },
     {
       id: '2',
-      modelSrc: '/public/model/Astronaut (3).glb', // Replace with actual model path
-      alt: 'Molecular Structure Model'
+      modelSrc: '/public/model/Astronaut (3).glb',
+      alt: 'Astronaut Model',
+      title: 'Astronaut Exploration',
+      description: 'Examine spacesuit design and functionality for extraterrestrial missions'
     },
     {
       id: '3',
-      modelSrc: '/public/model/micro2.0.glb', // Replace with actual model path
-      alt: 'Geological Formation Model'
+      modelSrc: '/public/model/micro2.0.glb',
+      alt: 'Molecular Structure Model',
+      title: 'Molecular Structure',
+      description: 'Visualize complex molecular bonds and atomic interactions in 3D space'
     },
     {
       id: '4',
-      modelSrc: '/public/model/cycle.glb', // Replace with actual model path
-      alt: 'Atmospheric Simulation Model'
+      modelSrc: '/public/model/cycle.glb',
+      alt: 'Atmospheric Simulation Model',
+      title: 'Atmospheric Layers',
+      description: 'Study atmospheric composition and weather pattern formation'
     }
   ];
 
@@ -356,7 +356,6 @@ const FeatureSection = () => {
           <p className={styles.sectionSubtitle}>{t('subtitle')}</p>
         </div>
         
-        {/* Main feature showcase with model-viewer and description */}
         <div className={styles.featureShowcase}>
           <div className={styles.featureShowcaseContent}>
             <h3 className={styles.featureShowcaseTitle}>{t('showcase').title}</h3>
@@ -377,12 +376,22 @@ const FeatureSection = () => {
               slidesPerView={1}
               navigation
               pagination={{ clickable: true }}
-              onSlideChange={(swiper) => setActiveModelIndex(swiper.activeIndex)}
+              onSlideChange={(swiper) => {
+                setActiveModelIndex(swiper.activeIndex);
+                setModelLoading(true);
+                setCurrentModelInfo({
+                  title: modelShowcases[swiper.activeIndex].title,
+                  description: modelShowcases[swiper.activeIndex].description
+                });
+                setTimeout(() => setModelLoading(false), 1500);
+              }}
               className={`${styles.featureSwiper} h-full w-full`}
+              autoplay={{ delay: 5000, disableOnInteraction: false }}
             >
               {modelShowcases.map((model, index) => (
                 <SwiperSlide key={model.id}>
                   <div className={styles.featureImagePlaceholder}>
+                    <div className={`${styles.modelProgress} ${modelLoading ? styles.loading : ''}`}></div>
                     <model-viewer
                       src={model.modelSrc}
                       alt={model.alt}
@@ -392,7 +401,18 @@ const FeatureSection = () => {
                       environment-image="neutral"
                       exposure="0.9"
                       style={{ width: '100%', height: '100%' }}
+                      onLoad={() => index === activeModelIndex && setModelLoading(false)}
                     ></model-viewer>
+                    <div className={styles.modelShowcase}>
+                      <div className={styles.modelOverlay}>
+                        <h4 className={styles.modelTitle}>{model.title}</h4>
+                        <p className={styles.modelDescription}>{model.description}</p>
+                        <div className={styles.modelControls}>
+                          <button className={styles.modelButton}>Explore</button>
+                          <button className={styles.modelButton}>Details</button>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </SwiperSlide>
               ))}
@@ -400,7 +420,6 @@ const FeatureSection = () => {
           </div>
         </div>
         
-        {/* Feature cards grid */}
         <div className={styles.featuresGrid}>
           {t('cards').map((card, index) => (
             <div key={index} className={styles.featureCard}>
@@ -416,26 +435,6 @@ const FeatureSection = () => {
               <p className={styles.featureDescription}>{card.description}</p>
             </div>
           ))}
-        </div>
-        
-        {/* Features metrics */}
-        <div className={styles.featureMetrics}>
-          <div className={styles.metricItem}>
-            <span className={styles.metricNumber}>15,000+</span>
-            <span className={styles.metricLabel}>{t('metrics').models}</span>
-          </div>
-          <div className={styles.metricItem}>
-            <span className={styles.metricNumber}>120+</span>
-            <span className={styles.metricLabel}>{t('metrics').simulations}</span>
-          </div>
-          <div className={styles.metricItem}>
-            <span className={styles.metricNumber}>99.9%</span>
-            <span className={styles.metricLabel}>{t('metrics').compatibility}</span>
-          </div>
-          <div className={styles.metricItem}>
-            <span className={styles.metricNumber}>4.9/5</span>
-            <span className={styles.metricLabel}>{t('metrics').rating}</span>
-          </div>
         </div>
       </div>
     </section>

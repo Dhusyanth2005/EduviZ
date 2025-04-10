@@ -1,12 +1,26 @@
-// components/Navbar/Navbar.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { gsap } from 'gsap';
+import { FaGlobe } from 'react-icons/fa';
 import styles from './Header.module.css';
 
 const Header = () => {
   const [scrolled, setScrolled] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState('en');
+  const [selectedLanguage, setSelectedLanguage] = useState(() => {
+    const savedLanguage = localStorage.getItem('preferredLanguage');
+    return savedLanguage || 'en';
+  });
+  const [showLanguageModal, setShowLanguageModal] = useState(false);
+  const languageButtonRef = useRef(null);
+  const modalRef = useRef(null);
+
+  const languages = [
+    { code: 'en', name: 'English' },
+    { code: 'ta', name: 'தமிழ்' },
+    { code: 'hi', name: 'हिंदी' },
+    { code: 'de', name: 'Deutsch' },
+    { code: 'ja', name: '日本語' }
+  ];
 
   const translations = {
     en: {
@@ -16,7 +30,8 @@ const Header = () => {
       howItWorks: "How It Works",
       models: "Models",
       login: "Login",
-      signUp: "Sign Up"
+      signUp: "Sign Up",
+      selectLanguage: "Select language"
     },
     ta: {
       home: "முகப்பு",
@@ -25,7 +40,8 @@ const Header = () => {
       howItWorks: "எப்படி வேலை செய்கிறது",
       models: "மாதிரிகள்",
       login: "உள்நுழை",
-      signUp: "பதிவு செய்க"
+      signUp: "பதிவு செய்க",
+      selectLanguage: "மொழியை தேர்ந்தெடுக்கவும்"
     },
     hi: {
       home: "होम",
@@ -34,7 +50,8 @@ const Header = () => {
       howItWorks: "यह कैसे काम करता है",
       models: "मॉडल",
       login: "लॉग इन",
-      signUp: "साइन अप"
+      signUp: "साइन अप",
+      selectLanguage: "भाषा चुनें"
     },
     de: {
       home: "Startseite",
@@ -43,7 +60,8 @@ const Header = () => {
       howItWorks: "So funktioniert's",
       models: "Modelle",
       login: "Anmelden",
-      signUp: "Registrieren"
+      signUp: "Registrieren",
+      selectLanguage: "Sprache auswählen"
     },
     ja: {
       home: "ホーム",
@@ -52,45 +70,10 @@ const Header = () => {
       howItWorks: "使い方",
       models: "モデル",
       login: "ログイン",
-      signUp: "サインアップ"
+      signUp: "サインアップ",
+      selectLanguage: "言語を選択"
     }
   };
-
-  const t = (key) => {
-    return translations[selectedLanguage][key] || translations['en'][key];
-  };
-
-  useEffect(() => {
-    const savedLanguage = localStorage.getItem('preferredLanguage');
-    if (savedLanguage) {
-      setSelectedLanguage(savedLanguage);
-    }
-
-    const handleLanguageChange = (e) => {
-      if (e.key === 'preferredLanguage') {
-        setSelectedLanguage(e.newValue || 'en');
-      }
-    };
-
-    window.addEventListener('storage', handleLanguageChange);
-    return () => {
-      window.removeEventListener('storage', handleLanguageChange);
-    };
-  }, []);
-
-  useEffect(() => {
-    const handleLocalLanguageChange = () => {
-      const currentLanguage = localStorage.getItem('preferredLanguage');
-      if (currentLanguage && currentLanguage !== selectedLanguage) {
-        setSelectedLanguage(currentLanguage);
-      }
-    };
-
-    window.addEventListener('localStorageChange', handleLocalLanguageChange);
-    return () => {
-      window.removeEventListener('localStorageChange', handleLocalLanguageChange);
-    };
-  }, [selectedLanguage]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -102,26 +85,81 @@ const Header = () => {
   }, []);
 
   const scrollToSection = (sectionId) => {
-    console.log(`Attempting to scroll to: ${sectionId}`);
     const element = document.getElementById(sectionId);
     if (element) {
-      console.log(`Element found: ${element.id}, offsetTop: ${element.offsetTop}`);
       const headerHeight = document.querySelector(`.${styles.header}`)?.offsetHeight || 0;
       const offsetPosition = element.offsetTop - headerHeight;
-      console.log(`Scrolling to: ${offsetPosition}`);
+      
+      // First try smooth scroll
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
 
-      // Use scrollIntoView as a fallback
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    } else {
-      console.error(`Element with ID ${sectionId} not found`);
+      // Fallback to scrollIntoView if smooth scroll fails
+      setTimeout(() => {
+        if (window.scrollY !== offsetPosition) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
     }
+  };
+
+  const handleLanguageSelect = (lang) => {
+    if (lang !== selectedLanguage) {
+      setSelectedLanguage(lang);
+      localStorage.setItem('preferredLanguage', lang);
+      window.dispatchEvent(new Event('languageChange'));
+      window.dispatchEvent(new Event('localStorageChange'));
+    }
+    setShowLanguageModal(false);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        languageButtonRef.current && 
+        modalRef.current &&
+        !languageButtonRef.current.contains(event.target) && 
+        !modalRef.current.contains(event.target)
+      ) {
+        setShowLanguageModal(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    const handleLanguageChange = () => {
+      const savedLanguage = localStorage.getItem('preferredLanguage');
+      if (savedLanguage && savedLanguage !== selectedLanguage) {
+        setSelectedLanguage(savedLanguage);
+      }
+    };
+
+    window.addEventListener('storage', handleLanguageChange);
+    window.addEventListener('languageChange', handleLanguageChange);
+    window.addEventListener('localStorageChange', handleLanguageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleLanguageChange);
+      window.removeEventListener('languageChange', handleLanguageChange);
+      window.removeEventListener('localStorageChange', handleLanguageChange);
+    };
+  }, [selectedLanguage]);
+
+  const t = (key) => {
+    const currentTranslations = translations[selectedLanguage] || translations['en'];
+    return currentTranslations[key] || translations['en'][key];
   };
 
   return (
     <header className={`${styles.header} ${scrolled ? styles.scrolled : ''}`}>
       <nav className={styles.navbar}>
         <Link to="/" className={styles.logo}>
-          <div  className={styles.logoShape}></div>
+          <div className={styles.logoShape}></div>
           EduViz
         </Link>
         <div className={styles.navLinks}>
@@ -131,13 +169,45 @@ const Header = () => {
           <button onClick={() => scrollToSection('how-it-works-section')} className={styles.navLink}>{t('howItWorks')}</button>
           <button onClick={() => scrollToSection('featured-models-section')} className={styles.navLink}>{t('models')}</button>
         </div>
-        <div className={styles.authButtons}>
-          <Link to="/login">
-            <button className={styles.button}>{t('login')}</button>
-          </Link>
-          <Link to="/signup">
-            <button className={`${styles.button} ${styles.primary}`}>{t('signUp')}</button>
-          </Link>
+        <div className={styles.rightSection}>
+          <div className={styles.languageSelector}>
+            <button
+              ref={languageButtonRef}
+              className={styles.languageButton}
+              onClick={() => setShowLanguageModal(!showLanguageModal)}
+              aria-label="Select language"
+            >
+              <FaGlobe className={styles.globeIcon} />
+            </button>
+            {showLanguageModal && (
+              <div ref={modalRef} className={styles.languageModal}>
+                <div className={styles.modalHeader}>
+                  {t('selectLanguage')}
+                </div>
+                <div className={styles.languageList}>
+                  {languages.map((lang) => (
+                    <button
+                      key={lang.code}
+                      className={`${styles.languageOption} ${
+                        selectedLanguage === lang.code ? styles.selected : ''
+                      }`}
+                      onClick={() => handleLanguageSelect(lang.code)}
+                    >
+                      {lang.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          <div className={styles.authButtons}>
+            <Link to="/login">
+              <button className={styles.button}>{t('login')}</button>
+            </Link>
+            <Link to="/signup">
+              <button className={`${styles.button} ${styles.primary}`}>{t('signUp')}</button>
+            </Link>
+          </div>
         </div>
       </nav>
     </header>

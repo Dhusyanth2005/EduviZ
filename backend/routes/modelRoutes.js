@@ -1,5 +1,5 @@
 const express = require('express');
-const { uploadModel, fetchModel, listModels, createModel,fetchModelsByInstructor } = require('../controllers/modelController');
+const { uploadModel, fetchModel, listModels, createModel,fetchModelsByInstructor,getAllModels} = require('../controllers/modelController');
 const upload = require('../middleware/multerConfig');
 const router = express.Router();
 
@@ -16,5 +16,5 @@ router.post(
   ]),
   createModel
 );
-
+router.get('/api/models/all', getAllModels);
 module.exports = router;

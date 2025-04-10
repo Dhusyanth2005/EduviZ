@@ -1,6 +1,7 @@
 export const cpuData = {
     name: 'CPU',
-    fullviewModel: "67f4243eb32752b6cc130ab5", // Example fullview model ID (replace with actual ID)
+    fullviewModel: "67f4c4c7d8f18673903f7650", // Example fullview model ID (replace with actual ID)
+    ms: 7500,
     parts: {
       smallGlass: {
         modelId: "67f421ddb32752b6cc13096c", // Example part model ID (replace with actual ID)

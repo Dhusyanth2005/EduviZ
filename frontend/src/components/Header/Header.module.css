@@ -29,8 +29,8 @@
 }
 
 .logo {
-  font-size: 28px;
   font-family: 'Kalnia Glaze';
+  font-size: 28px;
   font-weight: 700;
   color: #ffffff;
   text-decoration: none;
@@ -39,7 +39,7 @@
 }
 
 .logo:hover {
-  color: #00adb5;
+  color: #ae6df2;
   transform: scale(1.05);
 }
 
@@ -74,7 +74,7 @@
   height: 2px;
   bottom: 0;
   left: 0;
-  background-color: #00adb5;
+  background-color: #ae6df2;
   transition: width 0.3s ease;
 }
 
@@ -89,7 +89,7 @@
 
 .button {
   padding: 10px 24px;
-  border: 1.5px solid #00adb5;
+  border: 1.5px solid #ae6df2;
   border-radius: 8px;
   background-color: transparent;
   color: #ffffff;
@@ -101,20 +101,109 @@
 }
 
 .button:hover {
-  background-color: rgba(0, 173, 181, 0.15);
+  background-color: rgba(174, 109, 242, 0.15);
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(0, 173, 181, 0.2);
+  box-shadow: 0 5px 15px rgba(174, 109, 242, 0.2);
 }
 
 .button.primary {
-  background-color: #00adb5;
+  background-color: #ae6df2;
   color: #ffffff;
 }
 
 .button.primary:hover {
-  background-color: #00c2cc;
+  background-color: #9d5de0;
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(0, 173, 181, 0.4);
+  box-shadow: 0 5px 15px rgba(174, 109, 242, 0.4);
+}
+
+.rightSection {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.languageSelector {
+  position: relative;
+}
+
+.languageButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: background-color 0.3s ease;
+}
+
+.languageButton:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.globeIcon {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: #ae6df2;
+}
+
+.languageModal {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0.5rem;
+  background: var(--background-dark, #1a1b1f);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  min-width: 180px;
+  z-index: 1000;
+  overflow: hidden;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modalHeader {
+  padding: 1rem;
+  color: var(--text-lightest, #ffffff);
+  font-weight: 600;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.languageList {
+  padding: 0.5rem;
+}
+
+.languageOption {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  border: none;
+  color: var(--text-lightest, #ffffff);
+  cursor: pointer;
+  text-align: left;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.languageOption:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.languageOption.selected {
+  background-color: rgba(174, 109, 242, 0.2);
+  color: #ae6df2;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Responsive */

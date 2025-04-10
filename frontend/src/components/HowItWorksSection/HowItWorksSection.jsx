@@ -1,7 +1,6 @@
-// components/HowItWorksSection/HowItWorksSection.jsx
 import React, { useEffect, useState } from 'react';
 import { FaUserGraduate, FaStore, FaChalkboardTeacher } from 'react-icons/fa';
-import styles from '../../pages/HomePage/HomePage.module.css'; // Use the component-specific CSS
+import styles from './HowItWorksSection.module.css'; // Use the component-specific CSS
 
 const HowItWorksSection = () => {
   const [selectedLanguage, setSelectedLanguage] = useState('en');
@@ -101,9 +100,9 @@ const HowItWorksSection = () => {
 
   const t = (key, index) => {
     if (index !== undefined && key === 'steps') {
-      return translations[selectedLanguage][key][index];
+      return translations[selectedLanguage][key][index] || translations['en'][key][index];
     }
-    return translations[selectedLanguage][key];
+    return translations[selectedLanguage][key] || translations['en'][key];
   };
 
   useEffect(() => {
@@ -140,30 +139,36 @@ const HowItWorksSection = () => {
 
   return (
     <section id="how-it-works-section" className={styles.howItWorksSection}>
-      <div className={styles.container}>
-        <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>{t('title')}</h2>
-          <p className={styles.sectionSubtitle}>{t('subtitle')}</p>
+      {/* Particle Effects */}
+      <div className={styles.particles}>
+        <div className={styles.particle}></div>
+        <div className={styles.particle}></div>
+        <div className={styles.particle}></div>
+        <div className={styles.particle}></div>
+      </div>
+      <div className={styles.header}>
+        <h2 className={styles.sectionTitle}>{t('title')}</h2>
+        <p className={styles.sectionSubtitle}>{t('subtitle')}</p>
+      </div>
+      {/* Main Content */}
+      <div className={styles.stepsContainer}>
+        <div className={styles.stepCard}>
+          <div className={styles.stepNumber}>1</div>
+          <div className={styles.stepIcon}><FaUserGraduate /></div>
+          <h3 className={styles.stepTitle}>{t('steps', 0).title}</h3>
+          <p className={styles.stepDescription}>{t('steps', 0).description}</p>
         </div>
-        <div className={styles.stepsContainer}>
-          <div className={styles.stepCard}>
-            <div className={styles.stepNumber}>1</div>
-            <div className={styles.stepIcon}><FaUserGraduate /></div>
-            <h3 className={styles.stepTitle}>{t('steps', 0).title}</h3>
-            <p className={styles.stepDescription}>{t('steps', 0).description}</p>
-          </div>
-          <div className={styles.stepCard}>
-            <div className={styles.stepNumber}>2</div>
-            <div className={styles.stepIcon}><FaStore /></div>
-            <h3 className={styles.stepTitle}>{t('steps', 1).title}</h3>
-            <p className={styles.stepDescription}>{t('steps', 1).description}</p>
-          </div>
-          <div className={styles.stepCard}>
-            <div className={styles.stepNumber}>3</div>
-            <div className={styles.stepIcon}><FaChalkboardTeacher /></div>
-            <h3 className={styles.stepTitle}>{t('steps', 2).title}</h3>
-            <p className={styles.stepDescription}>{t('steps', 2).description}</p>
-          </div>
+        <div className={styles.stepCard}>
+          <div className={styles.stepNumber}>2</div>
+          <div className={styles.stepIcon}><FaStore /></div>
+          <h3 className={styles.stepTitle}>{t('steps', 1).title}</h3>
+          <p className={styles.stepDescription}>{t('steps', 1).description}</p>
+        </div>
+        <div className={styles.stepCard}>
+          <div className={styles.stepNumber}>3</div>
+          <div className={styles.stepIcon}><FaChalkboardTeacher /></div>
+          <h3 className={styles.stepTitle}>{t('steps', 2).title}</h3>
+          <p className={styles.stepDescription}>{t('steps', 2).description}</p>
         </div>
       </div>
     </section>
