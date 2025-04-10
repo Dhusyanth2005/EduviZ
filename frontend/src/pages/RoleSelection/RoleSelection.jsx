@@ -270,7 +270,7 @@ const RoleSelection = () => {
       localStorage.setItem("token", newToken);
   
       alert(t("roleSuccess"));
-      navigate(backendRole === "learner" ? "/dashboard" : "/instructor");
+      navigate(backendRole === "learner" ? "/learner" : "/instructor");
     } catch (err) {
       setError(t("roleError"));
       console.error("Role selection error:", err.response?.data || err.message);

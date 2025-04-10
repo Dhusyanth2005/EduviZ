@@ -420,44 +420,6 @@ function InstructorDashboard() {
     );
   };
 
-  const DashboardOverview = () => (
-    <div className={styles.dashboardOverview}>
-      <div className={styles.statsGrid}>
-        <div className={styles.statCard}>
-          <h3>Total Models</h3>
-          <div className={styles.statValue}>{models.length}</div>
-        </div>
-        <div className={styles.statCard}>
-          <h3>Published Models</h3>
-          <div className={styles.statValue}>{models.filter((model) => model.isPublished).length}</div>
-        </div>
-        <div className={styles.statCard}>
-          <h3>Total Views</h3>
-          <div className={styles.statValue}>{models.reduce((total, model) => total + model.views, 0)}</div>
-        </div>
-        <div className={styles.statCard}>
-          <h3>Total Parts</h3>
-          <div className={styles.statValue}>{models.reduce((total, model) => total + (model.parts?.length || 0), 0)}</div>
-        </div>
-      </div>
-      <div className={styles.recentActivity}>
-        <h2 className={styles.sectionTitle}>Recent Activity</h2>
-        <div className={styles.activityList}>
-          {models.slice(0, 3).map((model) => (
-            <div key={model.id} className={styles.activityItem}>
-              <span className={styles.activityIcon}>{model.category.charAt(0)}</span>
-              <div className={styles.activityDetails}>
-                <h4>{model.title}</h4>
-                <p>{model.isPublished ? "Published" : "Draft"} • {new Date(model.createdAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</p>
-                <small>{model.parts?.length || 0} parts</small>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-
   const ModelManagement = () => (
     <div className={styles.modelManagement}>
       <div className={styles.modelListHeader}>
