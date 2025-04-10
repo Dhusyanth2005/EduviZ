@@ -248,6 +248,7 @@ const selectRole = async (req, res) => {
 
     await user.save();
 
+    // Generate a new token with updated role
     const token = jwt.sign(
       { id: user._id, email: user.email, role: user.role },
       process.env.JWT_SECRET,
@@ -256,13 +257,14 @@ const selectRole = async (req, res) => {
 
     res.json({
       message: 'Role assigned successfully',
-      token,
+      token, // Return the new token
       user: {
         id: user._id,
         email: user.email,
         fullName: user.fullName,
         role: user.role,
-        preferredLanguage: user.preferredLanguage
+        preferredLanguage: user.preferredLanguage,
+        createdCourses: user.createdCourses || [] // Include createdCourses
       }
     });
   } catch (error) {

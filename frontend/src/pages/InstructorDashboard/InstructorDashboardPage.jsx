@@ -4,7 +4,6 @@ import SettingPage from "./SettingPage/SettingsPage";
 import WelcomePage from "./WelcomePage";
 import { useNavigate } from "react-router-dom";
 
-// CreateModelForm remains unchanged (with the validation fix from the previous response)
 function CreateModelForm({ onModelCreated, onCancel }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -48,17 +47,17 @@ function CreateModelForm({ onModelCreated, onCancel }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     if (!user || user.role !== "instructor") {
       alert("You must be logged in as an instructor to create models");
       return;
     }
-  
+
     if (modelCover && !modelCover.type.startsWith("image/")) {
       alert("Please upload a valid image file for the model cover.");
       return;
     }
-  
+
     const formData = new FormData();
     formData.append("title", title);
     formData.append("description", description);
@@ -66,10 +65,10 @@ function CreateModelForm({ onModelCreated, onCancel }) {
     formData.append("keyframes", keyframes);
     formData.append("framesPerSecond", framesPerSecond);
     formData.append("instructorId", user.id);
-  
+
     if (mainModel) formData.append("mainModel", mainModel);
     if (modelCover) formData.append("modelCover", modelCover);
-  
+
     const partsData = parts.map((part) => ({
       title: part.title,
       description: part.description,
@@ -79,25 +78,24 @@ function CreateModelForm({ onModelCreated, onCancel }) {
     parts.forEach((part) => {
       if (part.model) formData.append("parts", part.model);
     });
-  
+
     try {
       const response = await fetch("http://localhost:8080/create-model", {
         method: "POST",
         body: formData,
         credentials: "include",
       });
-  
+
       if (!response.ok) throw new Error("Failed to create model");
       const result = await response.json();
-  
-      // Use the modelCover ID from the server response instead of the filename
+
       const newModel = {
         id: result.modelId,
         title,
         description,
         category,
         mainModel: mainModel?.name || "No model uploaded",
-        modelCover: result.modelCover || "default_cover.jpg", // Assume server returns modelCover ID
+        modelCover: result.modelCover || "default_cover.jpg",
         keyframes,
         framesPerSecond,
         parts,
@@ -106,9 +104,9 @@ function CreateModelForm({ onModelCreated, onCancel }) {
         isPublished: false,
         instructorId: user.id,
       };
-  
+
       onModelCreated(newModel);
-  
+
       setTitle("");
       setDescription("");
       setCategory("");
@@ -344,28 +342,30 @@ function InstructorDashboard() {
               .join("")
           );
           const userData = JSON.parse(jsonPayload);
+          console.log("Decoded user data:", userData);
           setUser(userData);
-  
+
           const userResponse = await fetch("http://localhost:8080/api/user", {
             headers: { Authorization: `Bearer ${token}` },
             credentials: "include",
           });
-  
+
           if (!userResponse.ok) throw new Error("Failed to fetch user data");
           const userDoc = await userResponse.json();
           const createdCourses = userDoc.createdCourses || [];
-  
+
           if (createdCourses.length > 0) {
             const response = await fetch(
               `http://localhost:8080/api/models/instructor/${userData.id}`,
               { headers: { Authorization: `Bearer ${token}` }, credentials: "include" }
             );
-  
+
             if (response.ok) {
               const modelData = await response.json();
-              // Filter models using createdCourses IDs
-              const filteredModels = modelData.filter(model => createdCourses.includes(model.id));
-              console.log("Fetched models:", filteredModels); // Debug log
+              const filteredModels = modelData.filter(model =>
+                createdCourses.includes(model.id.toString())
+              );
+              console.log("Fetched models:", filteredModels);
               setModels(filteredModels);
             } else {
               console.error("Failed to fetch models:", response.statusText);
@@ -380,7 +380,7 @@ function InstructorDashboard() {
         }
       }
     };
-  
+
     fetchUserAndModels();
   }, []);
 
@@ -389,21 +389,29 @@ function InstructorDashboard() {
   const handleModelCreated = async (newModel) => {
     try {
       const token = localStorage.getItem("token");
+
+      const userResponse = await fetch("http://localhost:8080/api/user", {
+        headers: { Authorization: `Bearer ${token}` },
+        credentials: "include",
+      });
+      if (!userResponse.ok) throw new Error("Failed to fetch user data");
+      const userDoc = await userResponse.json();
+      const createdCourses = userDoc.createdCourses || [];
+      console.log("Updated createdCourses:", createdCourses);
+
       const response = await fetch(
         `http://localhost:8080/api/models/instructor/${user.id}`,
         { headers: { Authorization: `Bearer ${token}` }, credentials: "include" }
       );
       if (response.ok) {
         const updatedModels = await response.json();
-        const userResponse = await fetch("http://localhost:8080/api/user", {
-          headers: { Authorization: `Bearer ${token}` },
-          credentials: "include",
-        });
-        const userDoc = await userResponse.json();
-        const createdCourses = userDoc.createdCourses || [];
-        const filteredModels = updatedModels.filter(model => createdCourses.includes(model.id));
+        const filteredModels = updatedModels.filter(model =>
+          createdCourses.includes(model.id.toString())
+        );
         console.log("Filtered Models:", filteredModels);
         setModels(filteredModels);
+      } else {
+        throw new Error("Failed to fetch models");
       }
     } catch (error) {
       console.error("Error fetching updated models:", error);

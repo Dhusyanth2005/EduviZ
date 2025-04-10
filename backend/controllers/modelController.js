@@ -1,6 +1,7 @@
 const { ObjectId } = require('mongodb');
 const { getGfs, getDb } = require('../config/db');
 const Model = require('../models/Model');
+const User = require('../models/User'); // Import User model
 
 const uploadModel = async (req, res) => {
   const gfs = getGfs();
@@ -30,7 +31,7 @@ const uploadModel = async (req, res) => {
 
 const fetchModel = async (req, res) => {
   const gfs = getGfs();
-  console.log('Fetching model ID:', req.params.id); // Debug log
+  console.log('Fetching model ID:', req.params.id);
   if (!gfs) {
     console.log('Database not ready');
     return res.status(503).send('Database not ready');
@@ -85,10 +86,9 @@ const fetchModelsByInstructor = async (req, res) => {
   try {
     const models = await Model.find({ instructorId }).lean();
     if (!models.length) {
-      return res.json([]); // Return empty array if no models found
+      return res.json([]);
     }
 
-    // Enrich with GridFS file data using IDs only
     const enrichedModels = await Promise.all(
       models.map(async (model) => {
         return {
@@ -96,20 +96,20 @@ const fetchModelsByInstructor = async (req, res) => {
           title: model.title,
           description: model.description,
           category: model.category,
-          mainModel: model.mainModel, // Use ID instead of originalName
-          modelCover: model.modelCover, // Use ID instead of originalName
+          mainModel: model.mainModel,
+          modelCover: model.modelCover,
           keyframes: model.keyframes,
           framesPerSecond: model.framesPerSecond,
           parts: model.parts.map(part => ({
             title: part.title,
             description: part.description,
             uses: part.uses,
-            model: part.model // Keep as ID
+            model: part.model
           })),
           createdAt: model.createdAt,
           instructorId: model.instructorId,
-          views: model.views || 0, // Add logic if you track views
-          isPublished: model.isPublished || false // Add logic if you implement publishing
+          views: model.views || 0,
+          isPublished: model.isPublished || false
         };
       })
     );
@@ -120,9 +120,10 @@ const fetchModelsByInstructor = async (req, res) => {
     res.status(500).send('Error fetching models');
   }
 };
+
 const getAllModels = async (req, res) => {
   try {
-    const models = await Model.find().lean(); // Fetch all models from the Model collection
+    const models = await Model.find().lean();
     if (!models.length) {
       return res.status(404).json({ message: 'No models found' });
     }
@@ -132,6 +133,7 @@ const getAllModels = async (req, res) => {
     res.status(500).send('Error fetching models');
   }
 };
+
 const createModel = async (req, res) => {
   const gfs = getGfs();
   if (!gfs) return res.status(503).send('Database not ready');
@@ -153,7 +155,6 @@ const createModel = async (req, res) => {
 
     if (!mainModelFile) return res.status(400).send('Main model file is required');
 
-    // Upload main model to GridFS
     const mainModelFileName = `${Date.now()}-${mainModelFile.originalname}`;
     const mainUploadStream = gfs.openUploadStream(mainModelFileName, {
       contentType: mainModelFile.mimetype,
@@ -165,7 +166,6 @@ const createModel = async (req, res) => {
       mainUploadStream.on('error', reject);
     });
 
-    // Upload model cover to GridFS (optional)
     let modelCoverId = null;
     if (modelCoverFile) {
       const modelCoverFileName = `${Date.now()}-${modelCoverFile.originalname}`;
@@ -180,7 +180,6 @@ const createModel = async (req, res) => {
       });
     }
 
-    // Upload part models to GridFS
     const partsDataParsed = JSON.parse(partsData || '[]');
     const uploadedParts = await Promise.all(
       partsDataParsed.map(async (part, index) => {
@@ -207,13 +206,12 @@ const createModel = async (req, res) => {
       })
     );
 
-    // Save to MongoDB using Mongoose
     const newModel = new Model({
       title,
       description,
       category,
       mainModel: mainModelId,
-      modelCover: modelCoverId || 'default_cover.jpg', // Use ID or default
+      modelCover: modelCoverId || 'default_cover.jpg',
       keyframes,
       framesPerSecond,
       parts: uploadedParts,
@@ -225,17 +223,23 @@ const createModel = async (req, res) => {
 
     await newModel.save();
 
-    // Update user's createdCourses
-    await Model.updateOne(
-      { _id: newModel._id },
-      { $push: { createdCourses: newModel._id } },
-      { upsert: true }
+    const updatedUser = await User.updateOne(
+      { _id: instructorId, role: 'instructor' },
+      { $push: { createdCourses: newModel._id } }
     );
+    console.log('Update result:', updatedUser);
+    if (updatedUser.matchedCount === 0) {
+      console.error('No instructor found with ID:', instructorId);
+      return res.status(404).json({ error: 'Instructor not found or not an instructor' });
+    }
+    if (updatedUser.modifiedCount === 0) {
+      console.warn('No changes made to createdCourses for instructor:', instructorId);
+    }
 
     res.status(201).json({
       message: 'Model created successfully',
       modelId: newModel._id,
-      modelCover: modelCoverId || 'default_cover.jpg', // Return ID for frontend
+      modelCover: modelCoverId || 'default_cover.jpg',
     });
   } catch (error) {
     console.error('Create model error:', error);

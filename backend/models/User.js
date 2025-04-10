@@ -53,7 +53,7 @@ const userSchema = new mongoose.Schema({
   }],
   createdCourses: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Course'
+    ref: 'Model' // Change 'Course' to 'Model'
   }],
   wishlist: [{
     type: mongoose.Schema.Types.ObjectId,
