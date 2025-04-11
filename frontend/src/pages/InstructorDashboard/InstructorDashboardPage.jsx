@@ -12,15 +12,19 @@ function CreateModelForm({ onModelCreated, onCancel }) {
   const [modelCover, setModelCover] = useState(null);
   const [keyframes, setKeyframes] = useState("");
   const [framesPerSecond, setFramesPerSecond] = useState("24");
+  const [price, setPrice] = useState(0);
+  const [difficulty, setDifficulty] = useState("Advanced");
   const [parts, setParts] = useState([]);
+  const [learningPoints, setLearningPoints] = useState([]);
   const [newPart, setNewPart] = useState({
     title: "",
     description: "",
     uses: "",
     model: null,
   });
+  const [newLearningPoint, setNewLearningPoint] = useState("");
   const [user, setUser] = useState(null);
-
+  const navigate = useNavigate();
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -34,12 +38,19 @@ function CreateModelForm({ onModelCreated, onCancel }) {
             .join("")
         );
         const userData = JSON.parse(jsonPayload);
+        console.log("Decoded user data:", userData);
         setUser(userData);
       } catch (error) {
         console.error("Error decoding token:", error);
+        alert("Invalid token detected. Please log in again.");
+        navigate("/login");
       }
+    } else {
+      console.warn("No token found in localStorage. Redirecting to login.");
+      alert("Please log in to access this page.");
+      navigate("/login");
     }
-  }, []);
+  }, [navigate]);
 
   const mainModelInputRef = useRef(null);
   const modelCoverInputRef = useRef(null);
@@ -64,6 +75,10 @@ function CreateModelForm({ onModelCreated, onCancel }) {
     formData.append("category", category);
     formData.append("keyframes", keyframes);
     formData.append("framesPerSecond", framesPerSecond);
+    formData.append("price", price);
+    formData.append("currency", "INR");
+    formData.append("difficulty", difficulty);
+    formData.append("learningPoints", JSON.stringify(learningPoints.map((point) => point.text)));
     formData.append("instructorId", user.id);
 
     if (mainModel) formData.append("mainModel", mainModel);
@@ -86,7 +101,11 @@ function CreateModelForm({ onModelCreated, onCancel }) {
         credentials: "include",
       });
 
-      if (!response.ok) throw new Error("Failed to create model");
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to create model: ${response.status} - ${errorText}`);
+      }
+
       const result = await response.json();
 
       const newModel = {
@@ -98,6 +117,9 @@ function CreateModelForm({ onModelCreated, onCancel }) {
         modelCover: result.modelCover || "default_cover.jpg",
         keyframes,
         framesPerSecond,
+        price,
+        difficulty,
+        learningPoints: learningPoints.map((point) => point.text),
         parts,
         createdAt: new Date(),
         views: 0,
@@ -114,21 +136,37 @@ function CreateModelForm({ onModelCreated, onCancel }) {
       setModelCover(null);
       setKeyframes("");
       setFramesPerSecond("24");
+      setPrice(0);
+      setDifficulty("Advanced");
+      setLearningPoints([]);
       setParts([]);
+      setNewLearningPoint("");
     } catch (error) {
       console.error("Error creating model:", error);
-      alert("Failed to create model");
+      alert(`Failed to create model: ${error.message}`);
     }
   };
 
   const handleUploadClick = (inputRef) => inputRef.current.click();
+
   const handleAddPart = () => {
     if (newPart.title && newPart.model) {
       setParts([...parts, { ...newPart, id: Date.now() }]);
       setNewPart({ title: "", description: "", uses: "", model: null });
     }
   };
+
   const handleRemovePart = (partId) => setParts(parts.filter((part) => part.id !== partId));
+
+  const handleAddLearningPoint = () => {
+    if (newLearningPoint.trim()) {
+      setLearningPoints([...learningPoints, { text: newLearningPoint, id: Date.now() }]);
+      setNewLearningPoint("");
+    }
+  };
+
+  const handleRemoveLearningPoint = (pointId) =>
+    setLearningPoints(learningPoints.filter((point) => point.id !== pointId));
 
   return (
     <div className={styles.createModelContainer}>
@@ -222,6 +260,81 @@ function CreateModelForm({ onModelCreated, onCancel }) {
               />
             </div>
           </div>
+          <div className={styles.formRow}>
+            <div className={styles.formGroup}>
+              <label>Price (INR)</label>
+              <div className={styles.currencyInput}>
+                <span className={styles.currencySymbol}>₹</span>
+                <input
+                  type="number"
+                  min="0"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  placeholder="Enter price"
+                  required
+                />
+              </div>
+            </div>
+            <div className={styles.formGroup}>
+              <label>Difficulty</label>
+              <select
+                value={difficulty}
+                onChange={(e) => setDifficulty(e.target.value)}
+                required
+              >
+                <option value="Beginner">Beginner</option>
+                <option value="Intermediate">Intermediate</option>
+                <option value="Advanced">Advanced</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div className={styles.formSection}>
+          <h3 className={styles.formSectionTitle}>Learning Points</h3>
+          <div className={styles.addPartForm}>
+            <h4>Add New Learning Point</h4>
+            <div className={styles.formGroup}>
+              <label>Learning Point</label>
+              <input
+                type="text"
+                value={newLearningPoint}
+                onChange={(e) => setNewLearningPoint(e.target.value)}
+                placeholder="Enter a learning point"
+              />
+            </div>
+            <button
+              type="button"
+              className={styles.secondaryButton}
+              onClick={handleAddLearningPoint}
+              disabled={!newLearningPoint.trim()}
+            >
+              Add Learning Point
+            </button>
+          </div>
+          {learningPoints.length > 0 && (
+            <div className={styles.partsListContainer}>
+              <h4>Added Learning Points ({learningPoints.length})</h4>
+              <div className={styles.partsList}>
+                {learningPoints.map((point, index) => (
+                  <div key={point.id} className={styles.partCard}>
+                    <div className={styles.partCardHeader}>
+                      <span className={styles.partNumber}>{index + 1}</span>
+                      <h5 className={styles.partTitle}>{point.text}</h5>
+                      <button
+                        type="button"
+                        className={styles.removePartButton}
+                        onClick={() => handleRemoveLearningPoint(point.id)}
+                        aria-label="Remove learning point"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className={styles.formSection}>
@@ -299,7 +412,9 @@ function CreateModelForm({ onModelCreated, onCancel }) {
                     <div className={styles.partCardBody}>
                       <p className={styles.partDescription}>{part.description}</p>
                       {part.uses && (
-                        <p className={styles.partUses}><strong>Uses:</strong> {part.uses}</p>
+                        <p className={styles.partUses}>
+                          <strong>Uses:</strong> {part.uses}
+                        </p>
                       )}
                       <div className={styles.partFile}>
                         <span className={styles.fileIcon}>📄</span>
@@ -314,8 +429,12 @@ function CreateModelForm({ onModelCreated, onCancel }) {
         </div>
 
         <div className={styles.formActions}>
-          <button type="submit" className={styles.primaryButton}>Create Model</button>
-          <button type="button" className={styles.secondaryButton} onClick={onCancel}>Cancel</button>
+          <button type="submit" className={styles.primaryButton}>
+            Create Model
+          </button>
+          <button type="button" className={styles.secondaryButton} onClick={onCancel}>
+            Cancel
+          </button>
         </div>
       </form>
     </div>
@@ -331,95 +450,96 @@ function InstructorDashboard() {
   useEffect(() => {
     const fetchUserAndModels = async () => {
       const token = localStorage.getItem("token");
-      if (token) {
-        try {
-          const base64Url = token.split(".")[1];
-          const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-          const jsonPayload = decodeURIComponent(
-            atob(base64)
-              .split("")
-              .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
-              .join("")
-          );
-          const userData = JSON.parse(jsonPayload);
-          console.log("Decoded user data:", userData);
-          setUser(userData);
-
-          const userResponse = await fetch("http://localhost:8080/api/user", {
-            headers: { Authorization: `Bearer ${token}` },
-            credentials: "include",
-          });
-
-          if (!userResponse.ok) throw new Error("Failed to fetch user data");
-          const userDoc = await userResponse.json();
-          const createdCourses = userDoc.createdCourses || [];
-
-          if (createdCourses.length > 0) {
-            const response = await fetch(
-              `http://localhost:8080/api/models/instructor/${userData.id}`,
-              { headers: { Authorization: `Bearer ${token}` }, credentials: "include" }
-            );
-
-            if (response.ok) {
-              const modelData = await response.json();
-              const filteredModels = modelData.filter(model =>
-                createdCourses.includes(model.id.toString())
-              );
-              console.log("Fetched models:", filteredModels);
-              setModels(filteredModels);
-            } else {
-              console.error("Failed to fetch models:", response.statusText);
-              setModels([]);
-            }
-          } else {
-            setModels([]);
-          }
-        } catch (error) {
-          console.error("Error fetching data:", error);
+      if (!token) {
+        console.warn("No token found in localStorage. Redirecting to login.");
+        alert("Please log in to access this page.");
+        navigate("/login");
+        return;
+      }
+    
+      try {
+        // Decode token to get user data
+        const base64Url = token.split(".")[1];
+        const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+        const jsonPayload = decodeURIComponent(
+          atob(base64)
+            .split("")
+            .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+            .join("")
+        );
+        const userData = JSON.parse(jsonPayload);
+        console.log("Decoded user data:", userData);
+        setUser(userData);
+    
+        // Fetch models directly without filtering by createdCourses
+        const response = await fetch(
+          `http://localhost:8080/api/models/instructor/${userData.id}`,
+          { headers: { Authorization: `Bearer ${token}` }, credentials: "include" }
+        );
+    
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("Model fetch failed:", response.status, errorText);
+          throw new Error(`Failed to fetch models: ${response.status} - ${errorText}`);
+        }
+    
+        const modelData = await response.json();
+        console.log("Raw model data from API:", modelData);
+        
+        // Use models directly without filtering
+        if (Array.isArray(modelData)) {
+          setModels(modelData);
+        } else {
           setModels([]);
         }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        alert(`Error loading dashboard: ${error.message}. Please log in again or contact support.`);
+        navigate("/login");
       }
     };
-
     fetchUserAndModels();
-  }, []);
+  }, [navigate]);
 
   const handleMenuClick = (menuItem) => setActiveMenuItem(menuItem);
 
   const handleModelCreated = async (newModel) => {
     try {
+      // First, add the new model directly to the state for immediate feedback
+      setModels(prevModels => [...prevModels, newModel]);
+      
       const token = localStorage.getItem("token");
-
-      const userResponse = await fetch("http://localhost:8080/api/user", {
-        headers: { Authorization: `Bearer ${token}` },
-        credentials: "include",
-      });
-      if (!userResponse.ok) throw new Error("Failed to fetch user data");
-      const userDoc = await userResponse.json();
-      const createdCourses = userDoc.createdCourses || [];
-      console.log("Updated createdCourses:", createdCourses);
-
+      if (!token) {
+        throw new Error("No authentication token available.");
+      }
+  
+      // Directly fetch the models without filtering
       const response = await fetch(
         `http://localhost:8080/api/models/instructor/${user.id}`,
         { headers: { Authorization: `Bearer ${token}` }, credentials: "include" }
       );
-      if (response.ok) {
-        const updatedModels = await response.json();
-        const filteredModels = updatedModels.filter(model =>
-          createdCourses.includes(model.id.toString())
-        );
-        console.log("Filtered Models:", filteredModels);
-        setModels(filteredModels);
-      } else {
-        throw new Error("Failed to fetch models");
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch updated models: ${response.status} - ${errorText}`);
+      }
+  
+      const updatedModels = await response.json();
+      console.log("Raw updated models from API:", updatedModels);
+      
+      // Set models directly without filtering
+      if (Array.isArray(updatedModels)) {
+        setModels(updatedModels);
       }
     } catch (error) {
       console.error("Error fetching updated models:", error);
-      setModels((prevModels) => [newModel, ...prevModels]);
+      alert(`Error updating models: ${error.message}. Please try again or log in.`);
+      if (error.message.includes("authentication") || error.message.includes("token")) {
+        navigate("/login");
+      }
     }
     setActiveMenuItem("My Models");
   };
-
   const togglePublishStatus = (id) => {
     setModels(
       models.map((model) =>
@@ -432,7 +552,10 @@ function InstructorDashboard() {
     <div className={styles.modelManagement}>
       <div className={styles.modelListHeader}>
         <h2 className={styles.sectionTitle}>My 3D Models</h2>
-        <button className={styles.primaryButton} onClick={() => setActiveMenuItem("Create Model")}>
+        <button
+          className={styles.primaryButton}
+          onClick={() => setActiveMenuItem("Create Model")}
+        >
           Create New Model
         </button>
       </div>
@@ -441,20 +564,36 @@ function InstructorDashboard() {
           <div key={model.id} className={styles.modelCard}>
             <div className={styles.modelCardHeader}>
               <h3>{model.title}</h3>
-              <span className={`${styles.publishBadge} ${model.isPublished ? styles.published : styles.draft}`}>
+              <span
+                className={`${styles.publishBadge} ${
+                  model.isPublished ? styles.published : styles.draft
+                }`}
+              >
                 {model.isPublished ? "Published" : "Draft"}
               </span>
             </div>
             <div className={styles.modelCardContent}>
               <p>{model.description}</p>
               <div className={styles.modelMetadata}>
-                <span>Created: {new Date(model.createdAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</span>
+                <span>
+                  Created:{" "}
+                  {new Date(model.createdAt).toLocaleDateString("en-US", {
+                    month: "long",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
+                </span>
                 <span>Views: {model.views}</span>
                 <span>Parts: {model.parts?.length || 0}</span>
+                <span>Price: ₹{model.price || 0}</span>
+                <span>Difficulty: {model.difficulty || "N/A"}</span>
               </div>
             </div>
             <div className={styles.modelCardActions}>
-              <button className={styles.secondaryButton} onClick={() => togglePublishStatus(model.id)}>
+              <button
+                className={styles.secondaryButton}
+                onClick={() => togglePublishStatus(model.id)}
+              >
                 {model.isPublished ? "Unpublish" : "Publish"}
               </button>
               <button className={styles.tertiaryButton}>Edit Model</button>
@@ -478,7 +617,9 @@ function InstructorDashboard() {
                 <li key={item} className={styles.menuItem}>
                   <button
                     onClick={() => handleMenuClick(item)}
-                    className={`${styles.menuButton} ${activeMenuItem === item ? styles.active : ""}`}
+                    className={`${styles.menuButton} ${
+                      activeMenuItem === item ? styles.active : ""
+                    }`}
                   >
                     <span className={styles.menuText}>{item}</span>
                   </button>
@@ -489,14 +630,21 @@ function InstructorDashboard() {
         </aside>
         <main className={styles.mainContent}>
           <header className={styles.contentHeader}>
-            {activeMenuItem !== "Dashboard" && <h1 className={styles.pageTitle}>{activeMenuItem}</h1>}
+            {activeMenuItem !== "Dashboard" && (
+              <h1 className={styles.pageTitle}>{activeMenuItem}</h1>
+            )}
           </header>
           {activeMenuItem === "Dashboard" && <WelcomePage models={models} />}
           {activeMenuItem === "My Models" && <ModelManagement />}
           {activeMenuItem === "Create Model" && (
-            <CreateModelForm onModelCreated={handleModelCreated} onCancel={() => setActiveMenuItem("My Models")} />
+            <CreateModelForm
+              onModelCreated={handleModelCreated}
+              onCancel={() => setActiveMenuItem("My Models")}
+            />
           )}
-          {activeMenuItem === "Analytics" && <p className={styles.placeholderText}>Analytics coming soon!</p>}
+          {activeMenuItem === "Analytics" && (
+            <p className={styles.placeholderText}>Analytics coming soon!</p>
+          )}
           {activeMenuItem === "Settings" && <SettingPage />}
         </main>
       </div>

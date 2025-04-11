@@ -1,7 +1,7 @@
 export const microchipData = {
     name: 'Microchip',
-    ms:2500,
-    fullviewModel: "67f4c5c5d8f18673903f77d4", // Example fullview model ID (replace with actual ID)
+    ms:25687.5,
+    fullviewModel: "67f8009368b0149167b198e6", // Example fullview model ID (replace with actual ID)
     parts: {
         transistorLayer: {
             modelId: "67f421ddb32752b6cc13096c", // Example model ID (replace with actual ID)
@@ -31,7 +31,7 @@ export const microchipData = {
             modelId: "67f422b9b32752b6cc1309da", // Example model ID (replace with actual ID)
             name: "Higher Metal",
             description: "An additional upper-level metal layer, typically copper-based, positioned above the primary metal stack (e.g., M9 or higher in advanced nodes). Fabricated with wider traces and thicker insulation, it’s designed for long-distance signal transmission or high-current power delivery, often using specialized lithography and etching techniques.",
-            usage: "Enhances the microchip’s performance by optimizing power distribution and supporting efficient signal routing over longer distances, crucial for large-scale integrated circuits."
+            usage: "Enhances the microchip's performance by optimizing power distribution and supporting efficient signal routing over longer distances, crucial for large-scale integrated circuits."
         },
         passivationLayer: {
             modelId: "67f4221fb32752b6cc13096e", // Example model ID (replace with actual ID)

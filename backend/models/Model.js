@@ -74,6 +74,44 @@ const ModelSchema = new Schema({
     ref: 'Instructor',
     required: true,
   },
+  price: {
+    type: Number,
+    required: true,
+    min: 0,
+    default: 0,
+  },
+  currency: {
+    type: String,
+    default: 'INR',
+  },
+  certificateTemplate: {
+    type: String,
+  },
+  completionCriteria: {
+    minProgress: {
+      type: Number,
+      default: 100,
+      min: 0,
+      max: 100,
+    },
+    requiredParts: [{
+      type: Schema.Types.ObjectId,
+    }],
+  },
+  difficulty: {
+    type: String,
+    default: 'Advanced',
+  },
+  learningPoints: {
+    type: [String],
+    default: [
+      'Visualize complex molecular structures in 3D',
+      'Understand atomic bonding and molecular interactions',
+      'Learn about molecular symmetry and geometry',
+      'Explore different molecular representations',
+      'Study the relationship between structure and function',
+    ],
+  },
 });
 
 const Model = mongoose.model('Model', ModelSchema);

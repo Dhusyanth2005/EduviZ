@@ -1208,3 +1208,36 @@
         margin: 8px 0;
     }
 }
+.currencyInput {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.currencySymbol {
+  padding: 8px;
+  background-color: #f5f5f5;
+  border-right: 1px solid #ccc;
+}
+
+.currencyInput input {
+  border: none;
+  flex: 1;
+  padding: 8px;
+  outline: none;
+}
+
+.learningPoints {
+  margin-top: 10px;
+}
+
+.learningPoints ul {
+  list-style-type: disc;
+  padding-left: 20px;
+}
+
+.learningPoints li {
+  margin-bottom: 5px;
+}

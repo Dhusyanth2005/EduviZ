@@ -60,7 +60,7 @@ function LearnerDashboard({ marketplaceModels }) {
             return {
               id: model._id,
               title: model.title,
-              price: "$24.99", // Hardcoded; consider adding to schema
+              price: `₹${model.price}`, // Hardcoded; consider adding to schema
               imageUrl: imageUrl,
               description: model.description,
               isNew: (new Date() - new Date(model.createdAt)) < (7 * 24 * 60 * 60 * 1000), // Less than 7 days old

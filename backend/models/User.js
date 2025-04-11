@@ -20,8 +20,8 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['learner', 'instructor', 'admin'], // Changed 'creator' to 'instructor' for clarity
-    default: null // Role is empty by default
+    enum: ['learner', 'instructor', 'admin'], 
+    default: null 
   },
   googleId: {
     type: String,
@@ -49,15 +49,15 @@ const userSchema = new mongoose.Schema({
   },
   enrolledCourses: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Course'
+    ref: 'Model' 
   }],
   createdCourses: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Model' // Change 'Course' to 'Model'
+    ref: 'Model' 
   }],
   wishlist: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Course'
+    ref: 'Model' 
   }],
   verificationToken: String,
   resetPasswordToken: String,
@@ -84,6 +84,26 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };
 
+
+userSchema.add({       
+  certificates: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Certificate'
+  }],
+  completedModels: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Model'
+  }],
+  purchases: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Payment'
+  }],
+  learningProgress: {
+    type: Map,
+    of: Number,
+    default: {}
+  }
+});
 const User = mongoose.model('User', userSchema);
 
 module.exports = User;
