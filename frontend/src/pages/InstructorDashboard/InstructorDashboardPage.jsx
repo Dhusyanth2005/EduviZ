@@ -3,6 +3,7 @@ import styles from "./InstructorDashboard.module.css";
 import SettingPage from "./SettingPage/SettingsPage";
 import WelcomePage from "./WelcomePage";
 import { useNavigate } from "react-router-dom";
+import InstructorMessaging from "./Messages/InstructorMessaging";
 
 function CreateModelForm({ onModelCreated, onCancel }) {
   const [title, setTitle] = useState("");
@@ -613,7 +614,7 @@ function InstructorDashboard() {
           </div>
           <nav className={styles.sidebarNav}>
             <ul className={styles.menuList}>
-              {["Dashboard", "My Models", "Create Model", "Analytics", "Settings"].map((item) => (
+              {["Dashboard", "My Models", "Create Model","Messages","Analytics", "Settings"].map((item) => (
                 <li key={item} className={styles.menuItem}>
                   <button
                     onClick={() => handleMenuClick(item)}
@@ -642,6 +643,7 @@ function InstructorDashboard() {
               onCancel={() => setActiveMenuItem("My Models")}
             />
           )}
+          {activeMenuItem === "Messages" && <InstructorMessaging />}
           {activeMenuItem === "Analytics" && (
             <p className={styles.placeholderText}>Analytics coming soon!</p>
           )}

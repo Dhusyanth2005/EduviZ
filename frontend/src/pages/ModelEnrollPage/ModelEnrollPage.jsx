@@ -2,8 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import styles from "./ModelEnrollPage.module.css";
+import img from "../../images/img.jpg"; // Default fallback image
 
-function ModelEnrollPage({ marketplaceModels }) {
+function ModelEnrollPage() {
   const { modelId } = useParams();
   const navigate = useNavigate();
   const [isAddedToCart, setIsAddedToCart] = useState(false);
@@ -12,35 +13,104 @@ function ModelEnrollPage({ marketplaceModels }) {
   const [paymentLoading, setPaymentLoading] = useState(false);
 
   useEffect(() => {
-    if (marketplaceModels) {
-      const selectedModel = marketplaceModels.find(m => m.id === parseInt(modelId));
-      if (selectedModel) {
-        setModel(selectedModel);
-      } else {
-        console.error(`Model with ID ${modelId} not found`);
+    const fetchModel = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.error("No token found");
+        setLoading(false);
+        return;
       }
+
+      try {
+        const response = await axios.get(`http://localhost:8080/api/models/${modelId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
+        });
+
+        const modelData = response.data;
+
+        let imageUrl = img; // Default fallback
+        if (modelData.modelCover && modelData.modelCover !== 'default_cover.jpg') {
+          try {
+            const imageResponse = await fetch(`http://localhost:8080/model/${modelData.modelCover}`, {
+              headers: { Authorization: `Bearer ${token}` },
+              credentials: "include",
+            });
+            if (imageResponse.ok) {
+              const blob = await imageResponse.blob();
+              imageUrl = URL.createObjectURL(blob);
+            } else {
+              console.warn(`Failed to fetch model cover for ID ${modelData.modelCover}`);
+            }
+          } catch (error) {
+            console.error(`Error fetching model cover for ID ${modelData.modelCover}:`, error);
+          }
+        }
+
+        setModel({
+          id: modelData.id,
+          title: modelData.title,
+          price: `₹${modelData.price}`,
+          imageUrl,
+          category: modelData.category,
+          difficulty: modelData.difficulty,
+          description: modelData.description,
+          instructor: "EduViz Instructor",
+          lastUpdated: modelData.createdAt
+            ? new Date(modelData.createdAt).toLocaleDateString()
+            : "Unknown",
+          learningPoints: modelData.learningPoints || [],
+          isNew: (new Date() - new Date(modelData.createdAt)) < (7 * 24 * 60 * 60 * 1000),
+        });
+      } catch (error) {
+        console.error(`Error fetching model ${modelId}:`, error);
+        setModel(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchModel();
+  }, [modelId]);
+
+  const checkEnrolledStatus = async () => {
+    const token = localStorage.getItem("token");
+    if (!token || !model) return false;
+
+    try {
+      const response = await axios.get("http://localhost:8080/api/users/me", {
+        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true,
+      });
+      const enrolledCourses = response.data.enrolledCourses || [];
+      return enrolledCourses.includes(model.id);
+    } catch (error) {
+      console.error("Error checking enrolled status:", error);
+      return false;
     }
-    setLoading(false);
-  }, [modelId, marketplaceModels]);
+  };
 
   const handleBuyNow = async () => {
     if (!model || paymentLoading) return;
-  
+
+    const isAlreadyEnrolled = await checkEnrolledStatus();
+    if (isAlreadyEnrolled) {
+      alert("You have already enrolled in this course.");
+      return;
+    }
+
     setPaymentLoading(true);
     try {
-      const amountInUSD = parseFloat(model.price.replace('$', ''));
-      const exchangeRate = 83; // Adjust based on current rate
-      const amountInRupees = amountInUSD * exchangeRate;
-  
-      // Use the correct backend URL and endpoints
-      const { data: keyData } = await axios.get('http://localhost:8080/key');
+      const amountInRupees = parseFloat(model.price.replace("₹", ""));
+
+      const { data: keyData } = await axios.get("http://localhost:8080/key");
       const { key } = keyData;
-  
-      const { data: orderData } = await axios.post('http://localhost:8080/process', {
+
+      const { data: orderData } = await axios.post("http://localhost:8080/process", {
         amount: amountInRupees,
       });
       const { order } = orderData;
-  
+
       const options = {
         key,
         amount: order.amount,
@@ -48,8 +118,32 @@ function ModelEnrollPage({ marketplaceModels }) {
         name: "EduViz Learning Platform",
         description: `Purchase: ${model.title}`,
         order_id: order.id,
-        handler: function (response) {
-          navigate("/dashboard");
+        handler: async function (response) {
+          console.log("Payment success response:", response);
+          try {
+            const token = localStorage.getItem("token");
+            if (!token || !model || !model.id) {
+              throw new Error("Invalid session or model data");
+            }
+
+            console.log("Enrolling course with modelId:", model.id);
+            await axios.post(
+              "http://localhost:8080/api/users/enroll",
+              { modelId: model.id },
+              {
+                headers: { Authorization: `Bearer ${token}` },
+                withCredentials: true,
+              }
+            );
+            navigate("/learner");
+          } catch (error) {
+            console.error("Error enrolling course:", error.response ? error.response.data : error.message);
+            alert(
+              error.response && error.response.data && error.response.data.error
+                ? error.response.data.error
+                : "Payment successful, but failed to enroll course. Please contact support."
+            );
+          }
         },
         prefill: {
           name: "Customer Name",
@@ -63,27 +157,57 @@ function ModelEnrollPage({ marketplaceModels }) {
           modelId: model.id,
         },
       };
-  
+
       const rzp = new window.Razorpay(options);
-      rzp.on('payment.failed', function (response) {
-        alert('Payment failed. Please try again.');
+      rzp.on("payment.failed", function (response) {
+        alert("Payment failed. Please try again.");
         console.error(response.error);
       });
       rzp.open();
-  
     } catch (error) {
-      console.error('Payment processing error:', error);
-      alert('Failed to initiate payment. Please try again.');
+      console.error("Payment processing error:", error);
+      alert("Failed to initiate payment. Please try again.");
     } finally {
       setPaymentLoading(false);
     }
   };
 
-  const handleAddToCart = () => {
-    setIsAddedToCart(true);
-    setTimeout(() => {
-      setIsAddedToCart(false);
-    }, 2000);
+  const handleAddToCart = async () => {
+    if (!model || !model.id) {
+      console.error("Model data is invalid or not loaded");
+      alert("Model data is not available. Please try again.");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.error("No token found");
+        alert("Please log in to add to wishlist.");
+        return;
+      }
+
+      console.log("Adding to wishlist with modelId:", model.id);
+      await axios.post(
+        "http://localhost:8080/api/users/wishlist",
+        { modelId: model.id },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
+        }
+      );
+      setIsAddedToCart(true);
+      setTimeout(() => {
+        setIsAddedToCart(false);
+      }, 2000);
+    } catch (error) {
+      console.error("Error adding to wishlist:", error.response ? error.response.data : error.message);
+      alert(
+        error.response && error.response.data && error.response.data.error
+          ? error.response.data.error
+          : "Failed to add to wishlist. Please try again."
+      );
+    }
   };
 
   const handleBackToMarketplace = () => {
@@ -98,10 +222,7 @@ function ModelEnrollPage({ marketplaceModels }) {
     return (
       <div className={styles.errorContainer}>
         <h2>Model not found</h2>
-        <button 
-          className={styles.backButton} 
-          onClick={handleBackToMarketplace}
-        >
+        <button className={styles.backButton} onClick={handleBackToMarketplace}>
           Return to Marketplace
         </button>
       </div>
@@ -111,20 +232,16 @@ function ModelEnrollPage({ marketplaceModels }) {
   return (
     <div className={styles.pageRoot}>
       <div className={styles.modelEnrollContainer}>
-        <button 
-          className={styles.backButton} 
-          onClick={handleBackToMarketplace}
-        >
+        <button className={styles.backButton} onClick={handleBackToMarketplace}>
           ← Back to Marketplace
         </button>
-        
+
         <div className={styles.modelHeader}>
           <h1 className={styles.modelTitle}>{model.title}</h1>
           {model.isNew && <span className={styles.newBadge}>NEW</span>}
           <div className={styles.modelMeta}>
             <span className={styles.category}>{model.category}</span>
             <span className={styles.difficulty}>{model.difficulty}</span>
-            <span className={styles.rating}>★ {model.rating} ({model.reviews} reviews)</span>
             <span className={styles.instructor}>By {model.instructor}</span>
             <span className={styles.updated}>Last updated: {model.lastUpdated}</span>
           </div>
@@ -133,24 +250,27 @@ function ModelEnrollPage({ marketplaceModels }) {
         <div className={styles.modelContent}>
           <div className={styles.modelPreview}>
             <div className={styles.modelImageContainer}>
-              <img 
-                src={model.imageUrl} 
-                alt={model.title} 
-                className={styles.modelImage} 
+              <img
+                src={model.imageUrl}
+                alt={model.title}
+                className={styles.modelImage}
+                onError={(e) => {
+                  e.target.src = img;
+                }}
               />
             </div>
             <div className={styles.pricingCard}>
               <h2 className={styles.priceTag}>{model.price}</h2>
               <div className={styles.actionButtons}>
-                <button 
-                  className={styles.buyButton} 
+                <button
+                  className={styles.buyButton}
                   onClick={handleBuyNow}
                   disabled={paymentLoading}
                 >
                   {paymentLoading ? "Processing..." : "Buy Now"}
                 </button>
-                <button 
-                  className={`${styles.cartButton} ${isAddedToCart ? styles.added : ''}`} 
+                <button
+                  className={`${styles.cartButton} ${isAddedToCart ? styles.added : ""}`}
                   onClick={handleAddToCart}
                   disabled={isAddedToCart}
                 >

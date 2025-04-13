@@ -298,4 +298,104 @@ const updateCreatedCourses = async (req, res) => {
     res.status(500).json({ error: 'Failed to update created courses' });
   }
 };
-module.exports = { logout, authStatus, getUser, sendOTP, verifyOTP, signup, login, selectRole, updateCreatedCourses };
+
+const updateEnrolledCourses = async (req, res) => {
+  const { modelId } = req.body;
+  const userId = req.user.id; // From JWT middleware
+
+  if (!modelId) {
+    return res.status(400).json({ error: 'Model ID is required' });
+  }
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    if (user.role !== 'learner') {
+      return res.status(403).json({ error: 'Only learners can enroll in courses' });
+    }
+
+    // Check if modelId is already in enrolledCourses
+    if (user.enrolledCourses.includes(modelId)) {
+      return res.status(400).json({ error: 'Course already enrolled' });
+    }
+
+    // Add modelId to enrolledCourses
+    user.enrolledCourses.push(modelId);
+    await user.save();
+
+    res.json({ message: 'Course enrolled successfully' });
+  } catch (error) {
+    console.error('Error updating enrolled courses:', error);
+    res.status(500).json({ error: 'Failed to enroll course' });
+  }
+};
+const updateWishlist = async (req, res) => {
+  const { modelId } = req.body;
+  const userId = req.user.id; // From JWT middleware
+
+  if (!modelId) {
+    return res.status(400).json({ error: 'Model ID is required' });
+  }
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Check if modelId is already in wishlist
+    if (user.wishlist.includes(modelId)) {
+      return res.status(400).json({ error: 'Model already in wishlist' });
+    }
+
+    // Add modelId to wishlist
+    user.wishlist.push(modelId);
+    await user.save();
+
+    res.json({ message: 'Model added to wishlist successfully' });
+  } catch (error) {
+    console.error('Error updating wishlist:', error);
+    res.status(500).json({ error: 'Failed to update wishlist' });
+  }
+};
+const removeWishlist = async (req, res) => {
+  try {
+    const userId = req.user.id; // From auth middleware
+    const modelId = req.params.modelId;
+
+    // Find and update the user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Remove modelId from wishlist if it exists
+    const index = user.wishlist.indexOf(modelId);
+    if (index > -1) {
+      user.wishlist.splice(index, 1);
+      await user.save();
+      res.json({ message: "Model removed from wishlist", wishlist: user.wishlist });
+    } else {
+      res.status(400).json({ message: "Model not in wishlist" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+const getUserData = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('enrolledCourses wishlist role fullName email preferredLanguage');
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.json(user);
+  } catch (error) {
+    console.error('Error fetching user data:', error);
+    res.status(500).json({ error: 'Failed to fetch user data' });
+  }
+};
+module.exports = { logout, authStatus, getUser, sendOTP, verifyOTP, signup, login, selectRole, updateCreatedCourses , updateEnrolledCourses, updateWishlist , getUserData , removeWishlist };

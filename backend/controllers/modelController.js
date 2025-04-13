@@ -28,7 +28,50 @@ const uploadModel = async (req, res) => {
     res.status(500).send('Upload failed');
   }
 };
+const getModelById = async (req, res) => {
+  try {
+    const modelId = req.params.id;
 
+    // Validate ObjectId
+    if (!ObjectId.isValid(modelId)) {
+      return res.status(400).json({ message: 'Invalid model ID' });
+    }
+
+    // Fetch model from MongoDB
+    const model = await Model.findById(modelId).lean();
+    if (!model) {
+      return res.status(404).json({ message: 'Model not found' });
+    }
+
+    // Prepare response with schema-defined fields only
+    const responseModel = {
+      id: model._id.toString(),
+      title: model.title,
+      price: model.price,
+      modelCover: model.modelCover,
+      difficulty: model.difficulty,
+      description: model.description,
+      category: model.category,
+      views: model.views || 0,
+      instructorId: model.instructorId.toString(),
+      createdAt: model.createdAt,
+      learningPoints: model.learningPoints || [],
+      keyframes: model.keyframes,
+      framesPerSecond: model.framesPerSecond,
+      parts: model.parts,
+      currency: model.currency,
+      isPublished: model.isPublished,
+    };
+
+    // Increment views
+    await Model.updateOne({ _id: modelId }, { $inc: { views: 1 } });
+
+    res.status(200).json(responseModel);
+  } catch (error) {
+    console.error('Error fetching model by ID:', error);
+    res.status(500).json({ message: 'Error fetching model' });
+  }
+};
 const fetchModel = async (req, res) => {
   const gfs = getGfs();
   console.log('Fetching model ID:', req.params.id);
@@ -288,4 +331,4 @@ const createModel = async (req, res) => {
   }
 };
 
-module.exports = { uploadModel, fetchModel, listModels, createModel, fetchModelsByInstructor, getAllModels };
+module.exports = { uploadModel, fetchModel, listModels, createModel, fetchModelsByInstructor, getAllModels ,getModelById };

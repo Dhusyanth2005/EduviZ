@@ -1,0 +1,283 @@
+/* DirectMessaging.module.css */
+.messagingContainer {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: #151515;
+    border-radius: 16px;
+    border: 1px solid #333;
+    overflow: hidden;
+  }
+  
+  /* Chat header with instructor info */
+  .chatHeader {
+    background: #202020;
+    padding: 16px 24px;
+    border-bottom: 1px solid #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .instructorProfile {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  
+  .instructorAvatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6617cb, #cb218e);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 16px;
+  }
+  
+  .instructorInfo {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .instructorName {
+    font-size: 18px;
+    font-weight: 600;
+    color: #f0f0f0;
+    margin: 0 0 4px 0;
+  }
+  
+  .instructorTitle {
+    font-size: 14px;
+    color: #b3b3b3;
+  }
+  
+  .instructorStatus {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .statusIndicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+  
+  .online {
+    background: #10b981;
+  }
+  
+  .offline {
+    background: #777;
+  }
+  
+  .statusText {
+    font-size: 14px;
+    color: #b3b3b3;
+  }
+  
+  /* Message list */
+  .messageList {
+    flex: 1;
+    padding: 24px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  
+  .loadingMessages {
+    color: #b3b3b3;
+    text-align: center;
+    padding: 20px;
+  }
+  
+  .messageItem {
+    display: flex;
+    gap: 12px;
+    max-width: 80%;
+  }
+  
+  .userMessage {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+  }
+  
+  .instructorMessage {
+    align-self: flex-start;
+  }
+  
+  .messageSenderAvatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: white;
+    flex-shrink: 0;
+  }
+  
+  .userMessage .messageSenderAvatar {
+    background: linear-gradient(135deg, #10b981, #0891b2);
+  }
+  
+  .instructorMessage .messageSenderAvatar {
+    background: linear-gradient(135deg, #6617cb, #cb218e);
+  }
+  
+  .messageContent {
+    background: #202020;
+    border-radius: 16px;
+    padding: 14px 18px;
+    position: relative;
+  }
+  
+  .userMessage .messageContent {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: 16px 16px 0 16px;
+  }
+  
+  .instructorMessage .messageContent {
+    background: rgba(102, 23, 203, 0.1);
+    border: 1px solid rgba(102, 23, 203, 0.2);
+    border-radius: 16px 16px 16px 0;
+  }
+  
+  .messageText {
+    color: #f0f0f0;
+    line-height: 1.5;
+    font-size: 15px;
+    margin-bottom: 6px;
+  }
+  
+  .messageTime {
+    color: #777;
+    font-size: 12px;
+    text-align: right;
+  }
+  
+  /* Message input area */
+  .messageInputContainer {
+    padding: 16px 24px;
+    border-top: 1px solid #333;
+    background: #202020;
+  }
+  
+  .messageComposer {
+    background: #252525;
+    border: 1px solid #333;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  
+  .messageInput {
+    width: 100%;
+    border: none;
+    background: transparent;
+    padding: 16px;
+    color: #f0f0f0;
+    resize: none;
+    min-height: 60px;
+    max-height: 150px;
+    outline: none;
+    font-family: inherit;
+    font-size: 15px;
+  }
+  
+  .messageControls {
+    display: flex;
+    padding: 8px;
+    border-top: 1px solid #333;
+  }
+  
+  .attachButton {
+    background: transparent;
+    border: none;
+    color: #b3b3b3;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  
+  .attachButton:hover {
+    background: #333;
+    color: #f0f0f0;
+  }
+  
+  .attachIcon {
+    font-size: 20px;
+  }
+  
+  .sendButton {
+    margin-left: auto;
+    background: linear-gradient(90deg, #6617cb, #cb218e);
+    color: white;
+    border: none;
+    padding: 0 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .sendButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  }
+  
+  .sendButton:disabled {
+    background: #333;
+    color: #777;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+  
+  /* Responsive styles */
+  @media (max-width: 768px) {
+    .messageItem {
+      max-width: 90%;
+    }
+    
+    .chatHeader {
+      padding: 12px;
+    }
+    
+    .instructorAvatar {
+      width: 40px;
+      height: 40px;
+    }
+    
+    .instructorName {
+      font-size: 16px;
+    }
+    
+    .messageList {
+      padding: 16px;
+    }
+    
+    .messageInputContainer {
+      padding: 12px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .messageItem {
+      max-width: 95%;
+    }
+    
+    .instructorStatus {
+      display: none;
+    }
+  }

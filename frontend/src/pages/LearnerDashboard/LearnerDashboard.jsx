@@ -3,85 +3,235 @@ import styles from "./LearnerDashboard.module.css";
 import img from "../../images/img.jpg"; // Default fallback image
 import { useNavigate } from "react-router-dom";
 import SettingsPage from "./SettingPage/SettingsPage";
+import axios from "axios";
 
-function LearnerDashboard({ marketplaceModels }) {
+function LearnerDashboard() {
   const [activeMenuItem, setActiveMenuItem] = useState("Welcome");
-  const [createdModels, setCreatedModels] = useState([]); // State for fetched models
+  const [createdModels, setCreatedModels] = useState([]); // Non-enrolled models
+  const [enrolledCourses, setEnrolledCourses] = useState([]); // User's enrolled courses
+  const [wishlistModels, setWishlistModels] = useState([]); // User's wishlist models
+  const [loadingEnrolled, setLoadingEnrolled] = useState(true);
+  const [loadingWishlist, setLoadingWishlist] = useState(true);
   const navigate = useNavigate();
 
-  // Fetch all models with full schema content and handle modelCover images
+  // Fetch user data to get enrolledCourses and wishlist IDs
   useEffect(() => {
-    const fetchAllModels = async () => {
+    const fetchUserData = async () => {
       const token = localStorage.getItem("token");
       if (token) {
         try {
-          const base64Url = token.split(".")[1];
-          const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-          const jsonPayload = decodeURIComponent(
-            atob(base64)
-              .split("")
-              .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
-              .join("")
-          );
-          const userData = JSON.parse(jsonPayload);
-
-          const response = await fetch("http://localhost:8080/api/models/all", {
+          const response = await axios.get("http://localhost:8080/api/users/me", {
             headers: { Authorization: `Bearer ${token}` },
-            credentials: "include", // Include cookies/sessions
+            withCredentials: true,
           });
+          const { enrolledCourses = [], wishlist = [] } = response.data;
+          setEnrolledCourses([]); // Reset before fetching details
+          setWishlistModels([]); // Reset before fetching details
+          setLoadingEnrolled(true);
+          setLoadingWishlist(true);
 
-          if (!response.ok) {
-            throw new Error(`Failed to fetch models: ${response.statusText}`);
-          }
-
-          const modelData = await response.json();
-          console.log("Fetched models data:", modelData); // Debug log
-
-          // Map the fetched models and fetch modelCover images
-          const mappedModels = await Promise.all(modelData.map(async (model) => {
-            let imageUrl = img; // Default fallback
-            if (model.modelCover && model.modelCover !== 'default_cover.jpg') {
+          // Fetch details for enrolled courses
+          const enrolledDetails = await Promise.all(
+            enrolledCourses.map(async (courseId) => {
               try {
-                const imageResponse = await fetch(`http://localhost:8080/model/${model.modelCover}`, {
-                  headers: { Authorization: `Bearer ${token}` },
-                  credentials: "include",
-                });
+                const modelResponse = await axios.get(
+                  `http://localhost:8080/api/models/${courseId}`,
+                  {
+                    headers: { Authorization: `Bearer ${token}` },
+                    withCredentials: true,
+                  }
+                );
+                const modelData = modelResponse.data;
+                let imageUrl = img;
+                if (modelData.modelCover && modelData.modelCover !== "default_cover.jpg") {
+                  try {
+                    const imageResponse = await fetch(
+                      `http://localhost:8080/model/${modelData.modelCover}`,
+                      {
+                        headers: { Authorization: `Bearer ${token}` },
+                        credentials: "include",
+                      }
+                    );
+                    if (imageResponse.ok) {
+                      const blob = await imageResponse.blob();
+                      imageUrl = URL.createObjectURL(blob);
+                    }
+                  } catch (error) {
+                    console.error(`Error fetching model cover for ID ${modelData.modelCover}:`, error);
+                  }
+                }
+                return {
+                  id: modelData.id,
+                  title: modelData.title,
+                  price: `₹${modelData.price}`,
+                  imageUrl: imageUrl,
+                  difficulty: modelData.difficulty,
+                  description: modelData.description,
+                  category: modelData.category,
+                };
+              } catch (error) {
+                console.error(`Error fetching details for course ${courseId}:`, error);
+                return null;
+              }
+            })
+          ).then((results) => results.filter((model) => model !== null));
+          setEnrolledCourses(enrolledDetails);
+
+          // Fetch details for wishlist models
+          const wishlistDetails = await Promise.all(
+            wishlist.map(async (modelId) => {
+              try {
+                const modelResponse = await axios.get(
+                  `http://localhost:8080/api/models/${modelId}`,
+                  {
+                    headers: { Authorization: `Bearer ${token}` },
+                    withCredentials: true,
+                  }
+                );
+                const modelData = modelResponse.data;
+                let imageUrl = img;
+                if (modelData.modelCover && modelData.modelCover !== "default_cover.jpg") {
+                  try {
+                    const imageResponse = await fetch(
+                      `http://localhost:8080/model/${modelData.modelCover}`,
+                      {
+                        headers: { Authorization: `Bearer ${token}` },
+                        credentials: "include",
+                      }
+                    );
+                    if (imageResponse.ok) {
+                      const blob = await imageResponse.blob();
+                      imageUrl = URL.createObjectURL(blob);
+                    }
+                  } catch (error) {
+                    console.error(`Error fetching model cover for ID ${modelData.modelCover}:`, error);
+                  }
+                }
+                return {
+                  id: modelData.id,
+                  title: modelData.title,
+                  price: `₹${modelData.price}`,
+                  imageUrl: imageUrl,
+                  difficulty: modelData.difficulty,
+                  description: modelData.description,
+                  category: modelData.category,
+                };
+              } catch (error) {
+                console.error(`Error fetching details for wishlist model ${modelId}:`, error);
+                return null;
+              }
+            })
+          ).then((results) => results.filter((model) => model !== null));
+          setWishlistModels(wishlistDetails);
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+          setEnrolledCourses([]);
+          setWishlistModels([]);
+        } finally {
+          setLoadingEnrolled(false);
+          setLoadingWishlist(false);
+        }
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  // Fetch all models and filter out enrolled and wishlist models
+  useEffect(() => {
+    const fetchAllModels = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.warn("No token found, skipping model fetch");
+        setCreatedModels([]);
+        return;
+      }
+
+      try {
+        const response = await fetch("http://localhost:8080/api/models/all", {
+          headers: { Authorization: `Bearer ${token}` },
+          credentials: "include",
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch models: ${response.statusText}`);
+        }
+
+        const modelData = await response.json();
+
+        const mappedModels = await Promise.all(
+          modelData.map(async (model) => {
+            let imageUrl = img;
+            if (model.modelCover && model.modelCover !== "default_cover.jpg") {
+              try {
+                const imageResponse = await fetch(
+                  `http://localhost:8080/model/${model.modelCover}`,
+                  {
+                    headers: { Authorization: `Bearer ${token}` },
+                    credentials: "include",
+                  }
+                );
                 if (imageResponse.ok) {
                   const blob = await imageResponse.blob();
-                  imageUrl = URL.createObjectURL(blob); // Create a temporary URL for the image
-                } else {
-                  console.warn(`Failed to fetch model cover for ID ${model.modelCover}: ${imageResponse.statusText}`);
+                  imageUrl = URL.createObjectURL(blob);
                 }
               } catch (error) {
                 console.error(`Error fetching model cover for ID ${model.modelCover}:`, error);
               }
             }
-
             return {
               id: model._id,
               title: model.title,
-              price: `₹${model.price}`, // Hardcoded; consider adding to schema
+              price: `₹${model.price}`,
               imageUrl: imageUrl,
+              difficulty: model.difficulty,
               description: model.description,
-              isNew: (new Date() - new Date(model.createdAt)) < (7 * 24 * 60 * 60 * 1000), // Less than 7 days old
+              isNew: new Date() - new Date(model.createdAt) < 7 * 24 * 60 * 60 * 1000,
               category: model.category,
               views: model.views,
               instructorId: model.instructorId,
             };
-          }));
-          setCreatedModels(mappedModels);
-        } catch (error) {
-          console.error("Error fetching models:", error);
-          setCreatedModels([]); // Set empty array on error
-        }
-      } else {
-        console.warn("No token found, skipping model fetch");
+          })
+        );
+
+        const enrolledCourseIds = enrolledCourses.map((course) => course.id);
+        const wishlistIds = wishlistModels.map((model) => model.id);
+        const filteredModels = mappedModels.filter(
+          (model) => !enrolledCourseIds.includes(model.id)
+        );
+        setCreatedModels(filteredModels);
+      } catch (error) {
+        console.error("Error fetching models:", error);
         setCreatedModels([]);
       }
     };
 
     fetchAllModels();
-  }, []);
+  }, [enrolledCourses, wishlistModels]);
+
+  // Handle remove from wishlist
+  const handleRemoveFromCart = async (modelId) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const response = await axios.put(
+          `http://localhost:8080/api/users/wishlist/remove/${modelId}`,
+          {},
+          {
+            headers: { Authorization: `Bearer ${token}` },
+            withCredentials: true,
+          }
+        );
+        if (response.status === 200) {
+          // Update wishlistModels state by filtering out the removed model
+          setWishlistModels(wishlistModels.filter((model) => model.id !== modelId));
+          console.log("Model removed from wishlist");
+        }
+      } catch (error) {
+        console.error("Error removing model from wishlist:", error);
+      }
+    }
+  };
 
   const handleMenuClick = (menuItem) => {
     setActiveMenuItem(menuItem);
@@ -90,23 +240,6 @@ function LearnerDashboard({ marketplaceModels }) {
   const handlebuttonmodelroute = () => {
     setActiveMenuItem("Marketplace");
   };
-
-  const userModels = [
-    {
-      id: 1,
-      title: "Heart Dissection Model",
-      created: "March 10, 2025",
-      views: "1.2K",
-      imageUrl: "/api/placeholder/200/120",
-    },
-    {
-      id: 2,
-      title: "Earth Layers Visualizer",
-      created: "March 12, 2025",
-      views: "850",
-      imageUrl: "/api/placeholder/200/120",
-    },
-  ];
 
   const learningProgress = {
     exploredModels: 4,
@@ -117,8 +250,8 @@ function LearnerDashboard({ marketplaceModels }) {
   };
 
   const userStats = [
-    { label: "Models Explored", value: learningProgress.exploredModels },
-    { label: "Models Purchased", value: userModels.length },
+    { label: "Models Purchased", value: enrolledCourses.length },
+    { label: "Models in Cart", value: wishlistModels.length },
   ];
 
   const WelcomePage = () => (
@@ -129,7 +262,6 @@ function LearnerDashboard({ marketplaceModels }) {
           <p className={styles.welcomeSubtitle}>
             Explore interactive 3D models and enhance your visual learning:
           </p>
-
           <div className={styles.progressContainer}>
             <div className={styles.progressBar}>
               <div
@@ -143,7 +275,6 @@ function LearnerDashboard({ marketplaceModels }) {
               Models
             </p>
           </div>
-
           <div className={styles.upcomingCourse}>
             <h3>Next to Explore</h3>
             <div className={styles.coursePreview}>
@@ -155,21 +286,28 @@ function LearnerDashboard({ marketplaceModels }) {
             </div>
           </div>
         </div>
-
         <div className={styles.statsOverview}>
           {userStats.map((stat, index) => (
-            <div className={styles.statCard} key={index} onClick={() => navigate('/model')}>
+            <div
+              className={styles.statCard}
+              key={index}
+              onClick={() => navigate("/model")}
+            >
               <h2 className={styles.statValue}>{stat.value}</h2>
               <p className={styles.statLabel}>{stat.label}</p>
             </div>
           ))}
         </div>
       </div>
-
       <div className={styles.recommendedSection}>
         <div className={styles.sectionHeader}>
           <h2 className={styles.sectionTitle}>Recommended 3D Models</h2>
-          <button className={styles.textButton} onClick={handlebuttonmodelroute}>Browse Marketplace</button>
+          <button
+            className={styles.textButton}
+            onClick={handlebuttonmodelroute}
+          >
+            Browse Marketplace
+          </button>
         </div>
         <div className={styles.modelList}>
           {createdModels.length > 0 ? (
@@ -180,16 +318,20 @@ function LearnerDashboard({ marketplaceModels }) {
                     src={model.imageUrl}
                     alt={model.title}
                     className={styles.modelImage}
-                    onError={(e) => { e.target.src = img; }} // Fallback to default image
+                    onError={(e) => {
+                      e.target.src = img;
+                    }}
                   />
-                  {model.isNew && <span className={styles.modelBadge}>NEW</span>}
+                  {model.isNew && (
+                    <span className={styles.modelBadge}>NEW</span>
+                  )}
                 </div>
                 <div className={styles.modelContent}>
                   <h3 className={styles.modelTitle}>{model.title}</h3>
                   <p className={styles.modelDescription}>{model.description}</p>
                   <div className={styles.modelFooter}>
                     <p className={styles.modelPrice}>{model.price}</p>
-                    <button 
+                    <button
                       className={styles.modelActionButton}
                       onClick={() => navigate(`/model/${model.id}`)}
                     >
@@ -204,7 +346,6 @@ function LearnerDashboard({ marketplaceModels }) {
           )}
         </div>
       </div>
-
       <div className={styles.insightsSection}>
         <h2 className={styles.sectionTitle}>Your Exploration Insights</h2>
         <div className={styles.insightsGrid}>
@@ -247,74 +388,170 @@ function LearnerDashboard({ marketplaceModels }) {
     </div>
   );
 
-  const ModelViewer = () => (
-    <div className={styles.modelViewer}>
-      <h1 className={styles.pageTitle}>My 3D Models</h1>
-      <div className={styles.modelList}>
-        {userModels.map((model) => (
-          <div className={styles.modelCard} key={model.id}>
-            <div className={styles.modelImageContainer}>
-              <img
-                src={model.imageUrl}
-                alt={model.title}
-                className={styles.modelImage}
-              />
-            </div>
-            <h3 className={styles.modelTitle}>{model.title}</h3>
-            <p className={styles.modelDetails}>Created: {model.created}</p>
-            <p className={styles.modelStatus}>Views: {model.views}</p>
-            <button className={styles.modelActionButton}>Start Learning</button>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
-  const MarketplacePage = () => {
-    const [selectedCategory, setSelectedCategory] = useState("All");
-    const categories = ["All", "Biology", "Physics", "Chemistry", "Astronomy", "Computer Science"];
-
-    const filteredModels = selectedCategory === "All" 
-      ? marketplaceModels 
-      : marketplaceModels.filter(model => model.category === selectedCategory);
-
-    const handleModelDetails = (modelId) => {
-      navigate(`/model/${modelId}`);
-    };
+  const ModelViewer = () => {
+    if (loadingEnrolled) {
+      return <div className={styles.loadingContainer}>Loading enrolled models...</div>;
+    }
 
     return (
-      <div className={styles.marketplacePage}>
-        <div className={styles.categoryFilter}>
-          {categories.map((category) => (
+      <div className={styles.modelViewer}>
+        <h1 className={styles.pageTitle}>My 3D Models</h1>
+        <div className={styles.modelViewerList}>
+          {enrolledCourses.length > 0 ? (
+            enrolledCourses.map((model) => (
+              <div className={styles.modelViewerCard} key={model.id}>
+                <div className={styles.modelViewerImageContainer}>
+                  <img
+                    src={model.imageUrl}
+                    alt={model.title}
+                    className={styles.modelViewerImage}
+                    onError={(e) => {
+                      e.target.src = img;
+                    }}
+                  />
+                  <span className={styles.modelViewerBadge}>Enrolled</span>
+                </div>
+                <div className={styles.modelViewerContent}>
+                  <h3 className={styles.modelViewerTitle}>{model.title}</h3>
+                  <p className={styles.modelViewerDescription}>
+                    Status: Ready to Learn | Category: {model.category}
+                  </p>
+                  <div className={styles.modelViewerFooter}>
+                    <p className={styles.modelViewerPrice}>{model.price}</p>
+                    <button
+                      className={styles.modelViewerActionButton}
+                      onClick={() => navigate(`/learning/${model.id}`)}
+                    >
+                      Start Learning
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className={styles.placeholderText}>
+              You haven't enrolled in any models yet.
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const CartModel = () => {
+    if (loadingWishlist) {
+      return <div className={styles.loadingContainer}>Loading wishlist models...</div>;
+    }
+
+    return (
+      <div className={styles.cartModel}>
+        <h1 className={styles.pageTitle}>Cart Models</h1>
+        <div className={styles.cartModelList}>
+          {wishlistModels.length > 0 ? (
+            wishlistModels.map((model) => {
+              const isEnrolled = enrolledCourses.some(
+                (enrolled) => enrolled.id === model.id
+              );
+              return (
+                <div className={styles.cartModelCard} key={model.id}>
+                  <div className={styles.cartModelImageContainer}>
+                    <img
+                      src={model.imageUrl}
+                      alt={model.title}
+                      className={styles.cartModelImage}
+                      onError={(e) => {
+                        e.target.src = img;
+                      }}
+                    />
+                    <span className={styles.cartModelBadge}>In Cart</span>
+                  </div>
+                  <div className={styles.cartModelContent}>
+                    <h3 className={styles.cartModelTitle}>{model.title}</h3>
+                    <p className={styles.cartModelDescription}>
+                      Status: In Wishlist | Category: {model.category}
+                    </p>
+                    <div className={styles.cartModelFooter}>
+                      <p className={styles.cartModelPrice}>{model.price}</p>
+                      {isEnrolled ? (
+                        <>
+                        <span className={styles.cartModelPurchased}>Purchased</span>
+                        <button
+                            className={styles.cartModelRemoveButton}
+                            onClick={() => handleRemoveFromCart(model.id)}
+                          >
+                            Remove from Cart
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            className={styles.cartModelActionButton}
+                            onClick={() => navigate(`/model/${model.id}`)}
+                          >
+                            View Details
+                          </button>
+                          <button
+                            className={styles.cartModelRemoveButton}
+                            onClick={() => handleRemoveFromCart(model.id)}
+                          >
+                            Remove from Cart
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <p className={styles.placeholderText}>
+              Your cart is empty. Add models from the Marketplace!
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const MarketplacePage = () => (
+    <div className={styles.marketplacePage}>
+      <div className={styles.categoryFilter}>
+        {["All", "Biology", "Physics", "Chemistry", "Astronomy", "Computer Science"].map(
+          (category) => (
             <button
               key={category}
-              className={`${styles.categoryButton} ${selectedCategory === category ? styles.activeCategoryButton : ''}`}
+              className={`${styles.categoryButton} ${
+                selectedCategory === category ? styles.activeCategoryButton : ""
+              }`}
               onClick={() => setSelectedCategory(category)}
             >
               {category}
             </button>
-          ))}
+          )
+        )}
+      </div>
+      <div className={styles.marketplaceHeader}>
+        <h2 className={styles.sectionTitle}>3D Model Marketplace</h2>
+        <div className={styles.searchContainer}>
+          <input
+            type="text"
+            placeholder="Search models..."
+            className={styles.searchInput}
+          />
         </div>
-
-        <div className={styles.marketplaceHeader}>
-          <h2 className={styles.sectionTitle}>3D Model Marketplace</h2>
-          <div className={styles.searchContainer}>
-            <input 
-              type="text" 
-              placeholder="Search models..." 
-              className={styles.searchInput}
-            />
-          </div>
-        </div>
-
-        <div className={styles.modelList}>
-          {filteredModels.map((model) => (
+      </div>
+      <div className={styles.modelList}>
+        {filteredModels.length > 0 ? (
+          filteredModels.map((model) => (
             <div className={styles.modelCard} key={model.id}>
               <div className={styles.modelImageContainer}>
                 <img
                   src={model.imageUrl}
                   alt={model.title}
                   className={styles.modelImage}
+                  onError={(e) => {
+                    e.target.src = img;
+                  }}
                 />
                 {model.isNew && <span className={styles.modelBadge}>NEW</span>}
                 <span className={styles.difficultyBadge}>{model.difficulty}</span>
@@ -327,7 +564,7 @@ function LearnerDashboard({ marketplaceModels }) {
                     <span className={styles.modelCategory}>{model.category}</span>
                     <p className={styles.modelPrice}>{model.price}</p>
                   </div>
-                  <button 
+                  <button
                     className={styles.modelActionButton}
                     onClick={() => handleModelDetails(model.id)}
                   >
@@ -336,10 +573,21 @@ function LearnerDashboard({ marketplaceModels }) {
                 </div>
               </div>
             </div>
-          ))}
-        </div>
+          ))
+        ) : (
+          <p className={styles.placeholderText}>No models available.</p>
+        )}
       </div>
-    );
+    </div>
+  );
+
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const filteredModels =
+    selectedCategory === "All"
+      ? createdModels
+      : createdModels.filter((model) => model.category === selectedCategory);
+  const handleModelDetails = (modelId) => {
+    navigate(`/model/${modelId}`);
   };
 
   return (
@@ -351,7 +599,7 @@ function LearnerDashboard({ marketplaceModels }) {
           </div>
           <nav className={styles.sidebarNav}>
             <ul className={styles.menuList}>
-              {["Welcome", "My Models", "Marketplace", "Forum", "Settings"].map(
+              {["Welcome", "My Models", "Cart Model", "Marketplace", "Forum", "Settings"].map(
                 (item) => (
                   <li key={item} className={styles.menuItem}>
                     <button
@@ -368,7 +616,6 @@ function LearnerDashboard({ marketplaceModels }) {
             </ul>
           </nav>
         </aside>
-
         <main className={styles.mainContent}>
           <header className={styles.contentHeader}>
             {activeMenuItem !== "Welcome" && (
@@ -376,13 +623,28 @@ function LearnerDashboard({ marketplaceModels }) {
             )}
             {activeMenuItem === "My Models" && (
               <div className={styles.headerActions}>
-                <button className={styles.modelActionButton} onClick={handlebuttonmodelroute}>Explore more</button>
+                <button
+                  className={styles.modelActionButton}
+                  onClick={handlebuttonmodelroute}
+                >
+                  Explore more
+                </button>
+              </div>
+            )}
+            {activeMenuItem === "Cart Model" && (
+              <div className={styles.headerActions}>
+                <button
+                  className={styles.modelActionButton}
+                  onClick={handlebuttonmodelroute}
+                >
+                  Explore more
+                </button>
               </div>
             )}
           </header>
-
           {activeMenuItem === "Welcome" && <WelcomePage />}
           {activeMenuItem === "My Models" && <ModelViewer />}
+          {activeMenuItem === "Cart Model" && <CartModel />}
           {activeMenuItem === "Marketplace" && <MarketplacePage />}
           {activeMenuItem === "Forum" && (
             <p className={styles.placeholderText}>Community forum coming soon!</p>
