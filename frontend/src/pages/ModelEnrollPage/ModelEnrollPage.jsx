@@ -3,6 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import styles from "./ModelEnrollPage.module.css";
 import img from "../../images/img.jpg"; // Default fallback image
+import { jsPDF } from "jspdf"; // Add jsPDF import
+import PurchaseConfirmation from "../../components/PurchaseConfirmation/PurchaseConfirmation";
 
 function ModelEnrollPage() {
   const { modelId } = useParams();
@@ -11,6 +13,8 @@ function ModelEnrollPage() {
   const [model, setModel] = useState(null);
   const [loading, setLoading] = useState(true);
   const [paymentLoading, setPaymentLoading] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [purchaseDetails, setPurchaseDetails] = useState(null);
 
   useEffect(() => {
     const fetchModel = async () => {
@@ -22,27 +26,31 @@ function ModelEnrollPage() {
       }
 
       try {
+        // Fix: Use template literal for URL
         const response = await axios.get(`http://localhost:8080/api/models/${modelId}`, {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${token}` }, // Fix: Proper string interpolation
           withCredentials: true,
         });
 
         const modelData = response.data;
 
         let imageUrl = img; // Default fallback
-        if (modelData.modelCover && modelData.modelCover !== 'default_cover.jpg') {
+        if (modelData.modelCover && modelData.modelCover !== "default_cover.jpg") {
           try {
+            // Fix: Use template literal for URL
             const imageResponse = await fetch(`http://localhost:8080/model/${modelData.modelCover}`, {
-              headers: { Authorization: `Bearer ${token}` },
+              headers: { Authorization: `Bearer ${token}` }, // Fix: Proper string interpolation
               credentials: "include",
             });
             if (imageResponse.ok) {
               const blob = await imageResponse.blob();
               imageUrl = URL.createObjectURL(blob);
             } else {
+              // Fix: Use template literal for console.warn
               console.warn(`Failed to fetch model cover for ID ${modelData.modelCover}`);
             }
           } catch (error) {
+            // Fix: Use template literal for console.error
             console.error(`Error fetching model cover for ID ${modelData.modelCover}:`, error);
           }
         }
@@ -50,7 +58,7 @@ function ModelEnrollPage() {
         setModel({
           id: modelData.id,
           title: modelData.title,
-          price: `₹${modelData.price}`,
+          price: `₹${modelData.price}`, // Assuming price is a number
           imageUrl,
           category: modelData.category,
           difficulty: modelData.difficulty,
@@ -60,9 +68,10 @@ function ModelEnrollPage() {
             ? new Date(modelData.createdAt).toLocaleDateString()
             : "Unknown",
           learningPoints: modelData.learningPoints || [],
-          isNew: (new Date() - new Date(modelData.createdAt)) < (7 * 24 * 60 * 60 * 1000),
+          isNew: new Date() - new Date(modelData.createdAt) < 7 * 24 * 60 * 60 * 1000,
         });
       } catch (error) {
+        // Fix: Use template literal for console.error
         console.error(`Error fetching model ${modelId}:`, error);
         setModel(null);
       } finally {
@@ -79,7 +88,7 @@ function ModelEnrollPage() {
 
     try {
       const response = await axios.get("http://localhost:8080/api/users/me", {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` }, // Fix: Proper string interpolation
         withCredentials: true,
       });
       const enrolledCourses = response.data.enrolledCourses || [];
@@ -89,6 +98,7 @@ function ModelEnrollPage() {
       return false;
     }
   };
+
 
   const handleBuyNow = async () => {
     if (!model || paymentLoading) return;
@@ -116,6 +126,7 @@ function ModelEnrollPage() {
         amount: order.amount,
         currency: "INR",
         name: "EduViz Learning Platform",
+        // Fix: Use template literal for description
         description: `Purchase: ${model.title}`,
         order_id: order.id,
         handler: async function (response) {
@@ -131,11 +142,19 @@ function ModelEnrollPage() {
               "http://localhost:8080/api/users/enroll",
               { modelId: model.id },
               {
-                headers: { Authorization: `Bearer ${token}` },
+                headers: { Authorization: `Bearer ${token}` }, // Fix: Proper string interpolation
                 withCredentials: true,
               }
             );
-            navigate("/learner");
+
+            // Set purchase details and show confirmation
+            setPurchaseDetails({
+              orderId: response.razorpay_order_id,
+              paymentId: response.razorpay_payment_id,
+              model: model,
+            });
+            setShowConfirmation(true);
+
           } catch (error) {
             console.error("Error enrolling course:", error.response ? error.response.data : error.message);
             alert(
@@ -192,7 +211,7 @@ function ModelEnrollPage() {
         "http://localhost:8080/api/users/wishlist",
         { modelId: model.id },
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${token}` }, // Fix: Proper string interpolation
           withCredentials: true,
         }
       );
@@ -270,6 +289,7 @@ function ModelEnrollPage() {
                   {paymentLoading ? "Processing..." : "Buy Now"}
                 </button>
                 <button
+                  // Fix: Correct className syntax
                   className={`${styles.cartButton} ${isAddedToCart ? styles.added : ""}`}
                   onClick={handleAddToCart}
                   disabled={isAddedToCart}
@@ -300,6 +320,15 @@ function ModelEnrollPage() {
           </div>
         </div>
       </div>
+
+      <PurchaseConfirmation
+        isOpen={showConfirmation}
+        onClose={() => {
+          setShowConfirmation(false);
+          navigate("/learner");
+        }}
+        purchaseDetails={purchaseDetails}
+      />
     </div>
   );
 }

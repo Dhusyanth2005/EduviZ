@@ -1,24 +1,22 @@
 import React, { useState, useEffect} from "react";
 import styles from "./LearningPage.module.css";
 import Message from "./Message/Message";
+import Assessment from "./Assessment/Assessment"; // Import the Assessment component
 import img from "../../images/img.jpg"; // Default fallback image
 import axios from "axios";
 import { useParams } from "react-router-dom"; // Import useParams to get model ID from URL
 import { useNavigate } from "react-router-dom"; // Import useNavigate for navigation
 const LearningPage = () => {
   const [activeSection, setActiveSection] = useState("modelContent");
-  const [showChat, setShowChat] = useState(false);
   const [modelData, setModelData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const { modelId } = useParams(); // Get model ID from URL parameters
+  const { modelId } = useParams(); 
   const navigate = useNavigate(); // Initialize useNavigate for navigation
   useEffect(() => {
     const fetchModelData = async () => {
       const token = localStorage.getItem("token");
       if (token) {
         try {
-          // Replace with actual model ID or dynamic prop
-          ; // Placeholder; replace with real ID or prop
           const response = await axios.get(`http://localhost:8080/api/models/${modelId}`, {
             headers: { Authorization: `Bearer ${token}` },
             withCredentials: true,
@@ -61,7 +59,7 @@ const LearningPage = () => {
       case "messages":
         return <Message />;
       case "assessment":
-        return <Assessment />;
+        return <Assessment modelId = {modelId} />;
       case "resources":
         return <Resources />;
       default:
@@ -119,7 +117,7 @@ const LearningPage = () => {
         <div className={styles.contentArea}>
           <div className={styles.contentHeader}>
             <h1 className={styles.sectionTitle}>
-              {activeSection === "modelContent" && "Bicycle Mechanics: 3D Model Exploration"}
+              {activeSection === "modelContent" && "Interactive 3D Model Content"}
               {activeSection === "messages" && "Course Messages & Discussions"}
               {activeSection === "assessment" && "Module Assessments & Quizzes"}
               {activeSection === "resources" && "Learning Resources & Materials"}
@@ -133,30 +131,6 @@ const LearningPage = () => {
           <div className={styles.mainContent}>{renderContent()}</div>
         </div>
       </div>
-
-      {showChat ? (
-        <div className={styles.chatContainer}>
-          <div className={styles.chatHeader}>
-            <h3>EduViz Assistant</h3>
-            <button className={styles.closeChat} onClick={() => setShowChat(false)}>
-              ×
-            </button>
-          </div>
-          <div className={styles.chatMessages}>
-            <div className={styles.botMessage}>
-              Hello! How can I help with your 3D bicycle mechanics learning today?
-            </div>
-          </div>
-          <div className={styles.chatInput}>
-            <input type="text" placeholder="Type your question here..." />
-            <button className={styles.sendButton}>Send</button>
-          </div>
-        </div>
-      ) : (
-        <button className={styles.chatButton} onClick={() => setShowChat(true)}>
-          <span className={styles.chatIcon}>💬</span>
-        </button>
-      )}
     </div>
   );
 };
@@ -255,240 +229,6 @@ const ModelContent = ({ modelData, loading,navigate }) => {
       );
     };
 
-// const Messages = () => {
-//   return (
-//     <div className={styles.messagesSection}>
-//       <div className={styles.messageFilters}>
-//         <button className={`${styles.filterButton} ${styles.active}`}>All Messages</button>
-//         <button className={styles.filterButton}>Announcements</button>
-//         <button className={styles.filterButton}>Discussion</button>
-//         <button className={styles.filterButton}>Questions</button>
-//       </div>
-      
-//       <div className={styles.chatHeader}>
-//         <h3 className={styles.chatTitle}>Course Discussion Thread: Bicycle Drivetrain Mechanics</h3>
-//         <div className={styles.chatParticipants}>
-//           <div className={styles.participantAvatars}>
-//             <div className={styles.instructorAvatar}>SI</div>
-//             <div className={styles.studentAvatar}>YS</div>
-//           </div>
-//           <span className={styles.onlineStatus}>2 Online</span>
-//         </div>
-//       </div>
-      
-//       <div className={styles.messageList}>
-//         {/* Instructor announcement */}
-//         <div className={styles.messageCard}>
-//           <div className={styles.messageAuthor}>
-//             <div className={styles.authorAvatar}></div>
-//             <div className={styles.authorInfo}>
-//               <h4>Instructor Sarah</h4>
-//               <span className={styles.messageTime}>Yesterday at 3:45 PM</span>
-//             </div>
-//             <span className={styles.messageType}>Announcement</span>
-//           </div>
-//           <div className={styles.messageContent}>
-//             <p>
-//               Welcome to Module 3 of our Bicycle Mechanics course! This week we'll be focusing on the drivetrain system. Pay special attention to the relationship between the front and rear derailleurs. Remember to explore the 3D model thoroughly!
-//             </p>
-//           </div>
-//           <div className={styles.messageActions}>
-//             <button className={styles.actionButton}>
-//               <span className={styles.actionIcon}>👍</span> Like
-//             </button>
-//             <button className={styles.actionButton}>
-//               <span className={styles.actionIcon}>💬</span> Reply
-//             </button>
-//           </div>
-//         </div>
-
-//         {/* Student question */}
-//         <div className={`${styles.messageCard} ${styles.studentMessage}`}>
-//           <div className={styles.messageAuthor}>
-//             <div className={`${styles.authorAvatar} ${styles.studentAvatar}`}></div>
-//             <div className={styles.authorInfo}>
-//               <h4>You (Michael K.)</h4>
-//               <span className={styles.messageTime}>Today at 10:23 AM</span>
-//             </div>
-//             <span className={styles.messageType}>Question</span>
-//           </div>
-//           <div className={styles.messageContent}>
-//             <p>
-//               I'm having trouble understanding the relationship between gear ratios and pedaling efficiency. When I rotate the crankset in the 3D model, I notice the chain moves differently depending on which chainring and cog it's on. Could you explain how this affects real-world riding?
-//             </p>
-//           </div>
-//           <div className={styles.messageActions}>
-//             <button className={styles.actionButton}>
-//               <span className={styles.actionIcon}>✏️</span> Edit
-//             </button>
-//             <button className={styles.actionButton}>
-//               <span className={styles.actionIcon}>🗑️</span> Delete
-//             </button>
-//           </div>
-//         </div>
-
-//         {/* Instructor response */}
-//         <div className={styles.messageCard}>
-//           <div className={styles.messageAuthor}>
-//             <div className={styles.authorAvatar}></div>
-//             <div className={styles.authorInfo}>
-//               <h4>Instructor Sarah</h4>
-//               <span className={styles.messageTime}>Today at 11:05 AM</span>
-//             </div>
-//             <span className={styles.messageType}>Response</span>
-//           </div>
-//           <div className={styles.messageContent}>
-//             <p>
-//               Great question, Michael! Gear ratios are all about mechanical advantage. When you're in a larger chainring in front and a smaller cog in back, you get a higher gear ratio - meaning each pedal revolution makes the wheel rotate more times. This is efficient for flat roads and descents.
-//             </p>
-//             <p>
-//               Conversely, a smaller chainring and larger rear cog gives you a lower gear ratio, making pedaling easier for climbs but covering less distance per revolution.
-//             </p>
-//             <p>
-//               Try this in the 3D model: count how many rear wheel rotations you get from one complete pedal rotation in different gear combinations. You'll see the difference!
-//             </p>
-//             <div className={styles.attachmentPreview}>
-//               <div className={styles.attachmentIcon}>📊</div>
-//               <div className={styles.attachmentInfo}>
-//                 <span className={styles.attachmentName}>gear-ratio-chart.pdf</span>
-//                 <span className={styles.attachmentSize}>420 KB</span>
-//               </div>
-//               <button className={styles.downloadButton}>View</button>
-//             </div>
-//           </div>
-//           <div className={styles.messageActions}>
-//             <button className={styles.actionButton}>
-//               <span className={styles.actionIcon}>👍</span> Like
-//             </button>
-//             <button className={styles.actionButton}>
-//               <span className={styles.actionIcon}>💬</span> Reply
-//             </button>
-//           </div>
-//         </div>
-
-//         {/* Another student comment */}
-//         <div className={styles.messageCard}>
-//           <div className={styles.messageAuthor}>
-//             <div className={`${styles.authorAvatar} ${styles.otherStudentAvatar}`}></div>
-//             <div className={styles.authorInfo}>
-//               <h4>Jamie T.</h4>
-//               <span className={styles.messageTime}>Today at 11:32 AM</span>
-//             </div>
-//             <span className={styles.messageType}>Comment</span>
-//           </div>
-//           <div className={styles.messageContent}>
-//             <p>
-//               Adding to what Instructor Sarah said, I found it helpful to think about cadence too. With higher gear ratios, you might maintain speed but your legs work harder. Lower gear ratios let you maintain a comfortable cadence (~90 rpm is ideal for most people) even on steep climbs.
-//             </p>
-//           </div>
-//           <div className={styles.messageActions}>
-//             <button className={styles.actionButton}>
-//               <span className={styles.actionIcon}>👍</span> Like
-//             </button>
-//             <button className={styles.actionButton}>
-//               <span className={styles.actionIcon}>💬</span> Reply
-//             </button>
-//           </div>
-//         </div>
-
-//         {/* Your follow-up question */}
-//         <div className={`${styles.messageCard} ${styles.studentMessage}`}>
-//           <div className={styles.messageAuthor}>
-//             <div className={`${styles.authorAvatar} ${styles.studentAvatar}`}></div>
-//             <div className={styles.authorInfo}>
-//               <h4>You (Michael K.)</h4>
-//               <span className={styles.messageTime}>Just now</span>
-//             </div>
-//             <span className={styles.messageType}>Question</span>
-//           </div>
-//           <div className={styles.messageContent}>
-//             <p>
-//               Thanks for the explanations! I noticed in the 3D model that there's some diagonal alignment of the chain when using certain gear combinations. The model shows the chain looks strained in some positions. Is this something I should avoid in real riding?
-//             </p>
-//           </div>
-//           <div className={styles.messageEditor}>
-//             <textarea placeholder="Type your message here..."></textarea>
-//             <div className={styles.editorControls}>
-//               <button className={styles.formatButton}>B</button>
-//               <button className={styles.formatButton}>I</button>
-//               <button className={styles.formatButton}>
-//                 <span className={styles.attachIcon}>📎</span>
-//               </button>
-//               <button className={styles.sendButton}>Send</button>
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-      
-//       <div className={styles.chatInput}>
-//         <input type="text" placeholder="Type a new message..." />
-//         <button className={styles.attachButton}>
-//           <span className={styles.attachIcon}>📎</span>
-//         </button>
-//         <button className={styles.sendButton}>Send</button>
-//       </div>
-//     </div>
-//   );
-// };
-
-const Assessment = () => {
-  return (
-    <div className={styles.assessmentSection}>
-      <div className={styles.upcomingAssessments}>
-        <h3 className={styles.assessmentSectionTitle}>Upcoming Assessments</h3>
-        <div className={styles.assessmentCard}>
-          <div className={styles.assessmentHeader}>
-            <h4 className={styles.assessmentTitle}>Drivetrain Components Quiz</h4>
-            <span className={styles.assessmentDue}>Due: April 18, 11:59 PM</span>
-          </div>
-          <div className={styles.assessmentDetails}>
-            <p>Test your knowledge of bicycle drivetrain components and their functions.</p>
-            <div className={styles.assessmentMeta}>
-              <span className={styles.assessmentType}>Multiple Choice</span>
-              <span className={styles.assessmentPoints}>15 Points</span>
-              <span className={styles.assessmentTime}>30 Minutes</span>
-            </div>
-          </div>
-          <button className={styles.startButton}>Start Quiz</button>
-        </div>
-
-        <div className={styles.assessmentCard}>
-          <div className={styles.assessmentHeader}>
-            <h4 className={styles.assessmentTitle}>Drivetrain Assembly Challenge</h4>
-            <span className={styles.assessmentDue}>Due: April 25, 11:59 PM</span>
-          </div>
-          <div className={styles.assessmentDetails}>
-            <p>Using the 3D model, assemble the bicycle drivetrain in the correct order.</p>
-            <div className={styles.assessmentMeta}>
-              <span className={styles.assessmentType}>Interactive</span>
-              <span className={styles.assessmentPoints}>30 Points</span>
-              <span className={styles.assessmentTime}>45 Minutes</span>
-            </div>
-          </div>
-          <button className={styles.startButton}>Start Challenge</button>
-        </div>
-      </div>
-
-      <div className={styles.completedAssessments}>
-        <h3 className={styles.assessmentSectionTitle}>Completed Assessments</h3>
-        <div className={`${styles.assessmentCard} ${styles.completedCard}`}>
-          <div className={styles.assessmentHeader}>
-            <h4 className={styles.assessmentTitle}>Bicycle Frame Quiz</h4>
-            <span className={styles.assessmentScore}>Score: 92%</span>
-          </div>
-          <div className={styles.assessmentDetails}>
-            <div className={styles.assessmentMeta}>
-              <span className={styles.assessmentType}>Multiple Choice</span>
-              <span className={styles.assessmentPoints}>15/15 Points</span>
-              <span className={styles.assessmentDate}>Completed: April 5</span>
-            </div>
-          </div>
-          <button className={styles.reviewButton}>Review Results</button>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 const Resources = () => {
   return (

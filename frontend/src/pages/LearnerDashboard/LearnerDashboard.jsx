@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import styles from "./LearnerDashboard.module.css";
+import instructorStyles from "../InstructorDashboard/InstructorDashboard.module.css"; // Import InstructorDashboard styles
 import img from "../../images/img.jpg"; // Default fallback image
 import { useNavigate } from "react-router-dom";
-import SettingsPage from "./SettingPage/SettingsPage";
+import SettingsPage from "../SettingPage/SettingsPage";
 import axios from "axios";
+import ForumPage from "./ForumPage/ForumPage";
 
 function LearnerDashboard() {
   const [activeMenuItem, setActiveMenuItem] = useState("Welcome");
@@ -12,9 +14,10 @@ function LearnerDashboard() {
   const [wishlistModels, setWishlistModels] = useState([]); // User's wishlist models
   const [loadingEnrolled, setLoadingEnrolled] = useState(true);
   const [loadingWishlist, setLoadingWishlist] = useState(true);
+  const [userName, setUserName] = useState(""); // State for user name
   const navigate = useNavigate();
 
-  // Fetch user data to get enrolledCourses and wishlist IDs
+  // Fetch user data to get enrolledCourses, wishlist IDs, and name
   useEffect(() => {
     const fetchUserData = async () => {
       const token = localStorage.getItem("token");
@@ -24,7 +27,8 @@ function LearnerDashboard() {
             headers: { Authorization: `Bearer ${token}` },
             withCredentials: true,
           });
-          const { enrolledCourses = [], wishlist = [] } = response.data;
+          const { enrolledCourses = [], wishlist = [], fullName = "User" } = response.data;
+          setUserName(fullName); // Set the user's full name
           setEnrolledCourses([]); // Reset before fetching details
           setWishlistModels([]); // Reset before fetching details
           setLoadingEnrolled(true);
@@ -127,6 +131,7 @@ function LearnerDashboard() {
           console.error("Error fetching user data:", error);
           setEnrolledCourses([]);
           setWishlistModels([]);
+          setUserName("User"); // Fallback name if fetch fails
         } finally {
           setLoadingEnrolled(false);
           setLoadingWishlist(false);
@@ -258,7 +263,7 @@ function LearnerDashboard() {
     <div className={styles.welcomePage}>
       <div className={styles.welcomeHero}>
         <div className={styles.welcomeIntro}>
-          <h1 className={styles.welcomeTitle}>Welcome back, John</h1>
+          <h1 className={styles.welcomeTitle}>Welcome back, {userName}</h1>
           <p className={styles.welcomeSubtitle}>
             Explore interactive 3D models and enhance your visual learning:
           </p>
@@ -291,7 +296,6 @@ function LearnerDashboard() {
             <div
               className={styles.statCard}
               key={index}
-              onClick={() => navigate("/model")}
             >
               <h2 className={styles.statValue}>{stat.value}</h2>
               <p className={styles.statLabel}>{stat.label}</p>
@@ -310,40 +314,41 @@ function LearnerDashboard() {
           </button>
         </div>
         <div className={styles.modelList}>
-          {createdModels.length > 0 ? (
-            createdModels.map((model) => (
-              <div className={styles.modelCard} key={model.id}>
-                <div className={styles.modelImageContainer}>
-                  <img
-                    src={model.imageUrl}
-                    alt={model.title}
-                    className={styles.modelImage}
-                    onError={(e) => {
-                      e.target.src = img;
-                    }}
-                  />
-                  {model.isNew && (
-                    <span className={styles.modelBadge}>NEW</span>
-                  )}
-                </div>
-                <div className={styles.modelContent}>
-                  <h3 className={styles.modelTitle}>{model.title}</h3>
-                  <p className={styles.modelDescription}>{model.description}</p>
-                  <div className={styles.modelFooter}>
-                    <p className={styles.modelPrice}>{model.price}</p>
-                    <button
-                      className={styles.modelActionButton}
-                      onClick={() => navigate(`/model/${model.id}`)}
-                    >
-                      Details
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))
-          ) : (
-            <p className={styles.placeholderText}>No models available.</p>
-          )}
+        {createdModels.length > 0 ? (
+  createdModels.map((model) => (
+    <div className={styles.modelCard} key={model.id}>
+      <div className={styles.modelImageContainer}>
+        <img
+          src={model.imageUrl}
+          alt={model.title}
+          className={styles.modelImage}
+          onError={(e) => {
+            e.target.src = img;
+          }}
+        />
+        {model.isNew && <span className={styles.modelBadge}>NEW</span>}
+      </div>
+      <div className={styles.modelContent}>
+        <h3 className={styles.modelTitle}>{model.title}</h3>
+        <p className={instructorStyles.modelDescription}>{model.description}</p>
+        <div className={styles.modelFooter}>
+          <div className={styles.modelMetadata}>
+            <span className={styles.modelCategory}>{model.category}</span>
+            <p className={styles.modelPrice}>{model.price}</p>
+          </div>
+          <button
+            className={styles.modelActionButton}
+            onClick={() => navigate(`/model/${model.id}`)}
+          >
+            Details
+          </button>
+        </div>
+      </div>
+    </div>
+  ))
+) : (
+  <p className={styles.placeholderText}>No models available.</p>
+)}
         </div>
       </div>
       <div className={styles.insightsSection}>
@@ -474,8 +479,8 @@ function LearnerDashboard() {
                       <p className={styles.cartModelPrice}>{model.price}</p>
                       {isEnrolled ? (
                         <>
-                        <span className={styles.cartModelPurchased}>Purchased</span>
-                        <button
+                          <span className={styles.cartModelPurchased}>Purchased</span>
+                          <button
                             className={styles.cartModelRemoveButton}
                             onClick={() => handleRemoveFromCart(model.id)}
                           >
@@ -541,42 +546,42 @@ function LearnerDashboard() {
         </div>
       </div>
       <div className={styles.modelList}>
-        {filteredModels.length > 0 ? (
-          filteredModels.map((model) => (
-            <div className={styles.modelCard} key={model.id}>
-              <div className={styles.modelImageContainer}>
-                <img
-                  src={model.imageUrl}
-                  alt={model.title}
-                  className={styles.modelImage}
-                  onError={(e) => {
-                    e.target.src = img;
-                  }}
-                />
-                {model.isNew && <span className={styles.modelBadge}>NEW</span>}
-                <span className={styles.difficultyBadge}>{model.difficulty}</span>
-              </div>
-              <div className={styles.modelContent}>
-                <h3 className={styles.modelTitle}>{model.title}</h3>
-                <p className={styles.modelDescription}>{model.description}</p>
-                <div className={styles.modelFooter}>
-                  <div className={styles.modelMetadata}>
-                    <span className={styles.modelCategory}>{model.category}</span>
-                    <p className={styles.modelPrice}>{model.price}</p>
-                  </div>
-                  <button
-                    className={styles.modelActionButton}
-                    onClick={() => handleModelDetails(model.id)}
-                  >
-                    Details
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))
-        ) : (
-          <p className={styles.placeholderText}>No models available.</p>
-        )}
+      {filteredModels.length > 0 ? (
+  filteredModels.map((model) => (
+    <div className={styles.modelCard} key={model.id}>
+      <div className={styles.modelImageContainer}>
+        <img
+          src={model.imageUrl}
+          alt={model.title}
+          className={styles.modelImage}
+          onError={(e) => {
+            e.target.src = img;
+          }}
+        />
+        {model.isNew && <span className={styles.modelBadge}>NEW</span>}
+        <span className={styles.difficultyBadge}>{model.difficulty}</span>
+      </div>
+      <div className={styles.modelContent}>
+        <h3 className={styles.modelTitle}>{model.title}</h3>
+        <p className={instructorStyles.modelDescription}>{model.description}</p>
+        <div className={styles.modelFooter}>
+          <div className={styles.modelMetadata}>
+            <span className={styles.modelCategory}>{model.category}</span>
+            <p className={styles.modelPrice}>{model.price}</p>
+          </div>
+          <button
+            className={styles.modelActionButton}
+            onClick={() => handleModelDetails(model.id)}
+          >
+            Details
+          </button>
+        </div>
+      </div>
+    </div>
+  ))
+) : (
+  <p className={styles.placeholderText}>No models available.</p>
+)}
       </div>
     </div>
   );
@@ -647,7 +652,7 @@ function LearnerDashboard() {
           {activeMenuItem === "Cart Model" && <CartModel />}
           {activeMenuItem === "Marketplace" && <MarketplacePage />}
           {activeMenuItem === "Forum" && (
-            <p className={styles.placeholderText}>Community forum coming soon!</p>
+            <ForumPage/>
           )}
           {activeMenuItem === "Settings" && <SettingsPage />}
         </main>

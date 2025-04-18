@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import styles from "./InstructorDashboard.module.css";
-import SettingPage from "./SettingPage/SettingsPage";
+import SettingPage from "../SettingPage/SettingsPage"
 import WelcomePage from "./WelcomePage";
+import AnalyticsPage from "./Analytics/AnalyticsPage";
 import { useNavigate } from "react-router-dom";
 import InstructorMessaging from "./Messages/InstructorMessaging";
 
@@ -574,7 +575,6 @@ function InstructorDashboard() {
               </span>
             </div>
             <div className={styles.modelCardContent}>
-              <p>{model.description}</p>
               <div className={styles.modelMetadata}>
                 <span>
                   Created:{" "}
@@ -645,7 +645,7 @@ function InstructorDashboard() {
           )}
           {activeMenuItem === "Messages" && <InstructorMessaging />}
           {activeMenuItem === "Analytics" && (
-            <p className={styles.placeholderText}>Analytics coming soon!</p>
+            <AnalyticsPage />
           )}
           {activeMenuItem === "Settings" && <SettingPage />}
         </main>

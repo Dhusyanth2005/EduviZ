@@ -1,324 +1,533 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import styles from "./InstructorMessaging.module.css";
-import { useNavigate, useParams } from "react-router-dom";
+import axios from "axios";
+import io from "socket.io-client";
+import EmojiPicker from "emoji-picker-react";
+import { FaSmile, FaImage, FaTimes } from "react-icons/fa";
 
 const InstructorMessaging = () => {
-  const [conversations, setConversations] = useState([]);
-  const [activeConversation, setActiveConversation] = useState(null);
+  const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-  const { studentId } = useParams();
+  const [isTyping, setIsTyping] = useState(false);
+  const [typingUsers, setTypingUsers] = useState([]);
+  const socketRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
+  const messagesEndRef = useRef(null);
+  const messageInputRef = useRef(null);
+  const [studentInfo, setStudentInfo] = useState({
+    online: false,
+    lastActive: "",
+  });
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const messageListRef = useRef(null);
+  const emojiPickerRef = useRef(null);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [modalImage, setModalImage] = useState(null);
+  const fileInputRef = useRef(null);
+
+  // Scroll to bottom of messages
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   useEffect(() => {
-    // Load all student conversations
-    setLoading(true);
-    const fetchConversations = async () => {
+    scrollToBottom();
+  }, [messages]);
+
+  useEffect(() => {
+    // Initialize socket connection
+    socketRef.current = io("http://localhost:8080", {
+      transports: ["websocket"],
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+    });
+
+    // Join as instructor with unique identifier
+    const instructorId =
+      localStorage.getItem("instructorId") || Date.now().toString();
+    localStorage.setItem("instructorId", instructorId);
+
+    socketRef.current.emit("join", {
+      userType: "instructor",
+      userId: instructorId,
+    });
+
+    // Debug socket connection
+    socketRef.current.on("connect", () => {
+      console.log("Connected to socket server as instructor");
+    });
+
+    socketRef.current.on("disconnect", () => {
+      console.log("Disconnected from socket server");
+    });
+
+    // Listen for new messages
+    socketRef.current.on("new-message", (message) => {
+      console.log("New message received in instructor component:", message);
+      setMessages((prevMessages) => {
+        const messageExists = prevMessages.some((m) => m._id === message._id);
+        if (!messageExists) {
+          const updatedMessages = [...prevMessages, message];
+          console.log("Updated messages:", updatedMessages);
+          scrollToBottom();
+          return updatedMessages;
+        }
+        return prevMessages;
+      });
+    });
+
+    // Listen for typing indicators
+    socketRef.current.on("typing", (data) => {
+      if (data.userType === "student") {
+        setTypingUsers((prev) => {
+          if (data.isTyping && !prev.includes("student")) {
+            return [...prev, "student"];
+          } else if (!data.isTyping) {
+            return prev.filter((type) => type !== "student");
+          }
+          return prev;
+        });
+      }
+    });
+
+    // Listen for online status updates
+    socketRef.current.on("user-status", (users) => {
+      const student = users.find((u) => u.userType === "student");
+      if (student) {
+        setStudentInfo((prev) => ({
+          ...prev,
+          online: true,
+          lastActive: "Active now",
+        }));
+      } else {
+        setStudentInfo((prev) => ({
+          ...prev,
+          online: false,
+          lastActive: "Offline",
+        }));
+      }
+    });
+
+    // Load initial messages
+    const fetchMessages = async () => {
       try {
-        // This would normally fetch from an API
-        const mockConversations = [
-          {
-            studentId: "s1",
-            studentName: "Michael Brown",
-            studentAvatar: null,
-            courseId: "c101",
-            courseName: "Bicycle Mechanics 101",
-            lastMessage: "Thanks Sarah! The 3D model is really helpful. I'm trying to understand the relationship between the crankset and the rear derailleur.",
-            timestamp: "10:52 AM",
-            unread: false,
-            messages: [
-              {
-                id: 1,
-                sender: "instructor",
-                text: "Hi Michael! Welcome to the bicycle mechanics course. How are you finding the 3D model exploration so far?",
-                timestamp: "10:45 AM",
-                read: true
-              },
-              {
-                id: 2,
-                sender: "student",
-                text: "Thanks Sarah! The 3D model is really helpful. I'm trying to understand the relationship between the crankset and the rear derailleur.",
-                timestamp: "10:52 AM",
-                read: true
-              },
-              {
-                id: 3,
-                sender: "instructor",
-                text: "That's a great focus area! The crankset transfers your pedaling power to the chain, which then moves through the rear derailleur. The derailleur's job is to guide the chain onto different sized cogs, changing your gear ratio.",
-                timestamp: "11:05 AM",
-                read: true
-              },
-              {
-                id: 4,
-                sender: "instructor",
-                text: "Have you tried using the 'Dismantle' function on the 3D model? It lets you separate the components to see how they connect.",
-                timestamp: "11:07 AM",
-                read: true
-              }
-            ]
-          },
-          {
-            studentId: "s2",
-            studentName: "Emily Rodriguez",
-            studentAvatar: null,
-            courseId: "c101",
-            courseName: "Bicycle Mechanics 101",
-            lastMessage: "Hi Sarah, I'm struggling with the wheel truing exercise. The spoke tension seems uneven no matter what I do.",
-            timestamp: "9:23 AM",
-            unread: true,
-            messages: [
-              {
-                id: 1,
-                sender: "student",
-                text: "Hi Sarah, I'm struggling with the wheel truing exercise. The spoke tension seems uneven no matter what I do.",
-                timestamp: "9:23 AM",
-                read: false
-              }
-            ]
-          },
-          {
-            studentId: "s3",
-            studentName: "David Kim",
-            studentAvatar: null,
-            courseId: "c205",
-            courseName: "Advanced Cycling Techniques",
-            lastMessage: "The cadence drill video was really helpful. Is there a recommended cadence range for climbing steep hills?",
-            timestamp: "Yesterday",
-            unread: true,
-            messages: [
-              {
-                id: 1,
-                sender: "student",
-                text: "The cadence drill video was really helpful. Is there a recommended cadence range for climbing steep hills?",
-                timestamp: "Yesterday",
-                read: false
-              }
-            ]
-          },
-          {
-            studentId: "s4",
-            studentName: "Priya Patel",
-            studentAvatar: null,
-            courseId: "c302",
-            courseName: "Bicycle Maintenance Masterclass",
-            lastMessage: "I've completed the hydraulic brake bleeding assignment. Should I submit the video of the process?",
-            timestamp: "2 days ago",
-            unread: false,
-            messages: [
-              {
-                id: 1,
-                sender: "student",
-                text: "I've completed the hydraulic brake bleeding assignment. Should I submit the video of the process?",
-                timestamp: "2 days ago",
-                read: true
-              }
-            ]
-          }
-        ];
-
-        setConversations(mockConversations);
-
-        // If a studentId was provided in the URL, set that as the active conversation
-        if (studentId) {
-          const selectedConversation = mockConversations.find(c => c.studentId === studentId);
-          if (selectedConversation) {
-            setActiveConversation(selectedConversation);
-          }
+        const response = await axios.get("http://localhost:8080/api/messages");
+        console.log("Initial messages loaded:", response.data);
+        if (response.data) {
+          setMessages(response.data);
+          scrollToBottom();
         }
       } catch (error) {
-        console.error("Error fetching conversations:", error);
+        console.error("Error fetching messages:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchConversations();
-  }, [studentId]);
+    setLoading(true);
+    fetchMessages();
 
-  const handleSelectConversation = (conversation) => {
-    setActiveConversation(conversation);
-    
-    // Mark conversation as read
-    setConversations(prevConversations => 
-      prevConversations.map(conv => 
-        conv.studentId === conversation.studentId 
-          ? { ...conv, unread: false } 
-          : conv
-      )
-    );
-    
-    // Update URL without reloading
-   
+    // Cleanup on unmount
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.emit("leave", {
+          userType: "instructor",
+          userId: instructorId,
+        });
+        socketRef.current.disconnect();
+      }
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleTyping = () => {
+    if (!isTyping) {
+      setIsTyping(true);
+      socketRef.current.emit("typing", {
+        isTyping: true,
+        userType: "instructor",
+      });
+    }
+
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    typingTimeoutRef.current = setTimeout(() => {
+      setIsTyping(false);
+      socketRef.current.emit("typing", {
+        isTyping: false,
+        userType: "instructor",
+      });
+    }, 2000);
   };
 
-  const handleSendMessage = () => {
-    if (!activeConversation || newMessage.trim() === "") return;
+  const handleImageSelect = (e) => {
+    const file = e.target.files[0];
+    if (file && file.type.startsWith("image/")) {
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
-    const message = {
-      id: Math.max(...activeConversation.messages.map(m => m.id), 0) + 1,
-      sender: "instructor",
-      text: newMessage,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      read: true
-    };
+  const removeSelectedImage = () => {
+    setSelectedImage(null);
+    setImagePreview(null);
+    fileInputRef.current.value = "";
+  };
 
-    // Update the active conversation with the new message
-    const updatedConversation = {
-      ...activeConversation,
-      lastMessage: newMessage,
-      timestamp: message.timestamp,
-      messages: [...activeConversation.messages, message]
-    };
+  const handleSendMessage = async () => {
+    if (newMessage.trim() === "" && !selectedImage) return;
 
-    setActiveConversation(updatedConversation);
+    try {
+      let imageUrl = null;
 
-    // Update the conversation in the list
-    setConversations(prevConversations =>
-      prevConversations.map(conv =>
-        conv.studentId === activeConversation.studentId
-          ? updatedConversation
-          : conv
-      )
-    );
+      if (selectedImage) {
+        try {
+          const formData = new FormData();
+          formData.append("image", selectedImage);
 
-    setNewMessage("");
+          const uploadResponse = await axios.post(
+            "http://localhost:8080/api/messages/upload",
+            formData,
+            {
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            }
+          );
+
+          if (uploadResponse.data && uploadResponse.data.url) {
+            imageUrl = uploadResponse.data.url;
+            console.log("Image uploaded successfully:", imageUrl);
+          } else {
+            throw new Error("Invalid response from image upload");
+          }
+        } catch (uploadError) {
+          console.error("Error uploading image:", uploadError);
+          alert("Failed to upload image. Please try again.");
+          return;
+        }
+      }
+
+      const messageData = {
+        sender: "instructor",
+        userId: localStorage.getItem("instructorId"),
+        text: newMessage.trim(),
+        image: imageUrl,
+        timestamp: new Date(),
+        read: false,
+      };
+
+      try {
+        console.log("Sending instructor message:", messageData);
+        const response = await axios.post(
+          "http://localhost:8080/api/messages",
+          messageData
+        );
+        console.log("Message saved to database:", response.data);
+
+        if (response.data && response.data._id) {
+          const savedMessage = {
+            ...messageData,
+            _id: response.data._id,
+          };
+
+          socketRef.current.emit("instructor-message", savedMessage);
+          console.log("Emitted instructor message:", savedMessage);
+
+          setNewMessage("");
+          setSelectedImage(null);
+          setImagePreview(null);
+          if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+          }
+
+          setIsTyping(false);
+          socketRef.current.emit("typing", {
+            isTyping: false,
+            userType: "instructor",
+          });
+
+          scrollToBottom();
+        } else {
+          throw new Error("Invalid response from message save");
+        }
+      } catch (messageError) {
+        console.error("Error saving message:", messageError);
+        alert("Failed to save message. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error in message handling:", error);
+      alert("An unexpected error occurred. Please try again.");
+    }
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
     }
   };
 
-  // Get initials from a name
-  const getInitials = (name) => {
-    return name
-      .split(' ')
-      .map(word => word.charAt(0))
-      .join('')
-      .toUpperCase();
+  // Add click outside handler for emoji picker
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        emojiPickerRef.current &&
+        !emojiPickerRef.current.contains(event.target)
+      ) {
+        setShowEmojiPicker(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const onEmojiClick = (emojiData) => {
+    const cursor = messageInputRef.current.selectionStart;
+    const text =
+      newMessage.slice(0, cursor) +
+      emojiData.emoji +
+      newMessage.slice(cursor);
+    setNewMessage(text);
+    messageInputRef.current.focus();
+    setShowEmojiPicker(false);
+  };
+
+  const toggleEmojiPicker = () => {
+    setShowEmojiPicker(!showEmojiPicker);
+  };
+
+  const openImageModal = (imageUrl) => {
+    setModalImage(imageUrl);
+    setShowImageModal(true);
+  };
+
+  const closeImageModal = () => {
+    setModalImage(null);
+    setShowImageModal(false);
+  };
+
+  // Update message content rendering to handle images
+  const renderMessageContent = (message) => {
+    const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8080";
+
+    return (
+      <>
+        {message.text && (
+          <p
+            className={
+              message.text.match(/^(\p{Emoji}|\s)*$/u)
+                ? styles.emojiOnlyMessage
+                : styles.messageText
+            }
+          >
+            {message.text}
+          </p>
+        )}
+        {message.image && (
+          <div className={styles.imageWrapper}>
+            <img
+              src={
+                message.image.startsWith("http")
+                  ? message.image
+                  : `${apiUrl}${message.image}`
+              }
+              alt="Shared"
+              className={styles.sharedImage}
+              onClick={() =>
+                openImageModal(
+                  message.image.startsWith("http")
+                    ? message.image
+                    : `${apiUrl}${message.image}`
+                )
+              }
+              onError={(e) => {
+                console.error("Image load error:", e);
+                e.target.onerror = null;
+                e.target.src =
+                  "https://via.placeholder.com/300x200?text=Image+Not+Found";
+              }}
+            />
+          </div>
+        )}
+      </>
+    );
   };
 
   return (
-    <div className={styles.messagingPageContainer}>
-      {/* Sidebar with student list */}
-      <div className={styles.conversationsSidebar}>
-        <div className={styles.sidebarHeader}>
-          <h2>Student Messages</h2>
+    <div className={styles.messagingContainer}>
+      {/* Chat header */}
+      <div className={styles.chatHeader}>
+        <div className={styles.studentProfile}>
+          <div className={styles.studentAvatar}>S</div>
+          <div className={styles.studentInfo}>
+            <h3 className={styles.studentName}>Student</h3>
+          </div>
         </div>
+        <div className={styles.studentStatus}>
+          <span
+            className={`${styles.statusIndicator} ${
+              studentInfo.online ? styles.online : styles.offline
+            }`}
+          ></span>
+          <span className={styles.statusText}>
+            {typingUsers.length > 0 ? "Typing..." : studentInfo.lastActive}
+          </span>
+        </div>
+      </div>
 
+      {/* Message list */}
+      <div className={styles.messageList} ref={messageListRef}>
         {loading ? (
-          <div className={styles.loadingState}>Loading conversations...</div>
+          <div className={styles.loadingMessages}>Loading conversation...</div>
         ) : (
-          <div className={styles.conversationsList}>
-            {conversations.map((conversation) => (
+          <>
+            {messages.map((message) => (
               <div
-                key={conversation.studentId}
-                className={`${styles.conversationItem} ${
-                  activeConversation?.studentId === conversation.studentId ? styles.activeConversation : ""
-                } ${conversation.unread ? styles.unreadConversation : ""}`}
-                onClick={() => handleSelectConversation(conversation)}
+                key={message._id}
+                className={`${styles.messageItem} ${
+                  message.sender === "instructor"
+                    ? styles.userMessage
+                    : styles.studentMessage
+                }`}
               >
-                <div className={styles.studentAvatar}>
-                  {getInitials(conversation.studentName)}
-                </div>
-                <div className={styles.conversationInfo}>
-                  <div className={styles.conversationHeader}>
-                    <h3 className={styles.studentName}>{conversation.studentName}</h3>
-                    <span className={styles.timestamp}>{conversation.timestamp}</span>
+                {message.sender === "student" && (
+                  <div className={styles.messageSenderAvatar}>S</div>
+                )}
+                <div className={styles.messageContent}>
+                  {renderMessageContent(message)}
+                  <div className={styles.messageTime}>
+                    {new Date(message.timestamp).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
                   </div>
-                  <div className={styles.courseName}>{conversation.courseName}</div>
-                  <p className={styles.messagePreview}>{conversation.lastMessage}</p>
                 </div>
-                {conversation.unread && <div className={styles.unreadIndicator}></div>}
+                {message.sender === "instructor" && (
+                  <div className={styles.messageSenderAvatar}>You</div>
+                )}
               </div>
             ))}
-          </div>
-        )}
-      </div>
-
-      {/* Main messaging area */}
-      <div className={styles.messagingContainer}>
-        {activeConversation ? (
-          <>
-            {/* Conversation header */}
-            <div className={styles.chatHeader}>
-              <div className={styles.studentProfile}>
-                <div className={styles.studentAvatar}>
-                  {getInitials(activeConversation.studentName)}
-                </div>
-                <div className={styles.studentInfo}>
-                  <h3 className={styles.studentName}>{activeConversation.studentName}</h3>
-                  <span className={styles.courseName}>{activeConversation.courseName}</span>
-                </div>
-              </div>
-              <div className={styles.headerActions}>
-                <button className={styles.viewProfileButton}>View Profile</button>
-              </div>
-            </div>
-
-            {/* Message list */}
-            <div className={styles.messageList}>
-              {activeConversation.messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`${styles.messageItem} ${
-                    message.sender === 'instructor' ? styles.instructorMessage : styles.studentMessage
-                  }`}
-                >
-                  {message.sender === 'student' && (
-                    <div className={styles.messageSenderAvatar}>
-                      {getInitials(activeConversation.studentName)}
-                    </div>
-                  )}
-                  <div className={styles.messageContent}>
-                    <div className={styles.messageText}>{message.text}</div>
-                    <div className={styles.messageTime}>{message.timestamp}</div>
-                  </div>
-                  {message.sender === 'instructor' && (
-                    <div className={styles.messageSenderAvatar}>
-                      You
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            {/* Message input */}
-            <div className={styles.messageInputContainer}>
-              <div className={styles.messageComposer}>
-                <textarea
-                  className={styles.messageInput}
-                  placeholder="Type your message here..."
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                />
-                <div className={styles.messageControls}>
-                  <button className={styles.attachButton}>
-                    <span className={styles.attachIcon}>📎</span>
-                  </button>
-                  <button
-                    className={styles.sendButton}
-                    onClick={handleSendMessage}
-                    disabled={newMessage.trim() === ""}
-                  >
-                    Send
-                  </button>
-                </div>
-              </div>
-            </div>
+            <div ref={messagesEndRef} />
           </>
-        ) : (
-          <div className={styles.noConversationSelected}>
-            <div className={styles.noConversationContent}>
-              <h2>Select a conversation</h2>
-              <p>Choose a student conversation from the list to start messaging</p>
+        )}
+      </div>
+
+      {/* Message input */}
+      <div className={styles.messageInputContainer}>
+        {imagePreview && (
+          <div className={styles.imagePreviewContainer}>
+            <div className={styles.imagePreview}>
+              <img src={imagePreview} alt="Preview" />
+              <button
+                type="button"
+                className={styles.removeImageButton}
+                onClick={removeSelectedImage}
+              >
+                <FaTimes />
+              </button>
             </div>
           </div>
         )}
+        <div className={styles.messageComposer}>
+          <textarea
+            ref={messageInputRef}
+            className={styles.messageInput}
+            placeholder="Type your message here..."
+            value={newMessage}
+            onChange={(e) => {
+              setNewMessage(e.target.value);
+              handleTyping();
+            }}
+            onKeyPress={handleKeyPress}
+          />
+          <div className={styles.messageControls}>
+            <div className={styles.inputActions}>
+              <button
+                type="button"
+                className={styles.emojiButton}
+                onClick={toggleEmojiPicker}
+              >
+                <FaSmile />
+              </button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                className={styles.fileInput}
+                accept="image/*"
+                onChange={handleImageSelect}
+              />
+              <button
+                type="button"
+                className={styles.emojiButton}
+                onClick={() => fileInputRef.current.click()}
+              >
+                <FaImage />
+              </button>
+              {showEmojiPicker && (
+                <div
+                  className={styles.emojiPickerContainer}
+                  ref={emojiPickerRef}
+                >
+                  <EmojiPicker
+                    onEmojiClick={onEmojiClick}
+                    theme="dark"
+                    width={300}
+                    height={400}
+                  />
+                </div>
+              )}
+            </div>
+            <button
+              className={styles.sendButton}
+              onClick={handleSendMessage}
+              disabled={newMessage.trim() === "" && !selectedImage}
+            >
+              Send
+            </button>
+          </div>
+        </div>
       </div>
+
+      {showImageModal && (
+        <div className={styles.imageModal} onClick={closeImageModal}>
+          <div
+            className={styles.modalContent}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={modalImage}
+              alt="Full size"
+              className={styles.modalImage}
+              onError={(e) => {
+                console.error("Modal image load error:", e);
+                e.target.onerror = null;
+                e.target.src =
+                  "https://via.placeholder.com/800x600?text=Image+Not+Found";
+              }}
+            />
+            <button
+              className={styles.closeModalButton}
+              onClick={closeImageModal}
+            >
+              <FaTimes />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

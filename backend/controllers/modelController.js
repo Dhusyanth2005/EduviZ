@@ -48,6 +48,7 @@ const getModelById = async (req, res) => {
       id: model._id.toString(),
       title: model.title,
       price: model.price,
+      mainModel: model.mainModel,
       modelCover: model.modelCover,
       difficulty: model.difficulty,
       description: model.description,

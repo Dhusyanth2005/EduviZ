@@ -1,9 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import styles from '../../pages/HomePage/HomePage.module.css';
 
 const CategoriesSection = () => {
   const [selectedLanguage, setSelectedLanguage] = useState('en');
+  const scrollContainerRef = useRef(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
 
   const categories = [
     {
@@ -103,6 +107,59 @@ const CategoriesSection = () => {
     };
   }, [selectedLanguage]);
 
+  // Mouse down event handler for dragging
+  const handleMouseDown = (e) => {
+    setIsDragging(true);
+    setStartX(e.pageX - scrollContainerRef.current.offsetLeft);
+    setScrollLeft(scrollContainerRef.current.scrollLeft);
+  };
+
+  // Mouse move event handler for dragging
+  const handleMouseMove = (e) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    const x = e.pageX - scrollContainerRef.current.offsetLeft;
+    const walk = (x - startX) * 2; // Scroll speed multiplier
+    scrollContainerRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  // Mouse up event handler to stop dragging
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  // Touch event handlers for mobile devices
+  const handleTouchStart = (e) => {
+    setIsDragging(true);
+    setStartX(e.touches[0].pageX - scrollContainerRef.current.offsetLeft);
+    setScrollLeft(scrollContainerRef.current.scrollLeft);
+  };
+
+  const handleTouchMove = (e) => {
+    if (!isDragging) return;
+    const x = e.touches[0].pageX - scrollContainerRef.current.offsetLeft;
+    const walk = (x - startX) * 2;
+    scrollContainerRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const scrollLeft20 = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({
+        left: -300,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  const scrollRight20 = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({
+        left: 300,
+        behavior: 'smooth'
+      });
+    }
+  };
+
   return (
     <section id="categories-section" className={styles.categoriesSection}>
       <div className={styles.heroBackground}>
@@ -117,24 +174,54 @@ const CategoriesSection = () => {
           <h2 className={styles.sectionTitle}>{t('title')}</h2>
           <p className={styles.sectionSubtitle}>{t('subtitle')}</p>
         </div>
-        <div className={styles.categoriesGrid}>
-          {categories.map((category) => (
-            <Link
-              key={category.id}
-              to={`/category/${category.name.toLowerCase()}`}
-              className={styles.categoryCard}
-            >
-              <div
-                className={styles.categoryImage}
-                style={{ backgroundImage: `url(${category.image})` }}
-              ></div>
-              <h3 className={styles.categoryTitle}>{category.name}</h3>
-              <p className={styles.categoryDescription}>{category.description}</p>
-            </Link>
-          ))}
+        
+        <div className={styles.categoriesSliderContainer}>
+          <button 
+            className={`${styles.sliderNavButton} ${styles.sliderNavButtonLeft}`}
+            onClick={scrollLeft20}
+            aria-label="Scroll left"
+          >
+            &lt;
+          </button>
+          
+          <div 
+            ref={scrollContainerRef}
+            className={styles.categoriesSlider}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleMouseUp}
+          >
+            {categories.map((category) => (
+              <Link
+                key={category.id}
+                to="/"
+                className={styles.categoryCard}
+              >
+                <div
+                  className={styles.categoryImage}
+                  style={{ backgroundImage: `url(${category.image})` }}
+                ></div>
+                <h3 className={styles.categoryTitle}>{category.name}</h3>
+                <p className={styles.categoryDescription}>{category.description}</p>
+              </Link>
+            ))}
+          </div>
+          
+          <button 
+            className={`${styles.sliderNavButton} ${styles.sliderNavButtonRight}`}
+            onClick={scrollRight20}
+            aria-label="Scroll right"
+          >
+            &gt;
+          </button>
         </div>
+        
         <div className={styles.categoriesCta}>
-          <Link to="/categories" className={styles.btnSecondary}>
+          <Link to="/" className={styles.btnSecondary}>
             {t('viewAll')}
           </Link>
         </div>

@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from "react";
+import { useParams } from "react-router-dom";
 import ModelViewer from "../../components/ModelSection/ModelViewer";
 import ModelDescription from "../../components/ModelSection/ModelDescription";
 import { FaSun, FaMoon, FaExpand, FaCompress, FaCamera, FaRedo, FaSearchPlus, FaSearchMinus } from 'react-icons/fa';
 import styles from './ModelPage.module.css';
 
-export default function ModelPage({data}) {
+export default function ModelPage() {
+  const { modelId } = useParams();
   const [isPlaying, setIsPlaying] = useState(false);
   const [showDetailView, setShowDetailView] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -15,21 +17,23 @@ export default function ModelPage({data}) {
   const [selectedPart, setSelectedPart] = useState(null);
   const [error, setError] = useState('');
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [modelData, setModelData] = useState(null);
   const appRef = useRef(null);
 
-  const parts = Object.keys(data.parts);
   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
   useEffect(() => {
-    const fetchModel = async () => {
-      const url = `${apiUrl}/model/${data.fullviewModel}`;
-      console.log('Fetching full model from:', url); // Debug log
+    const fetchModelData = async () => {
       try {
-        const response = await fetch(url, { credentials: 'include' });
-        if (!response.ok) {
-          throw new Error(`Failed to fetch model: ${response.status}`);
-        }
-        const blob = await response.blob();
+        const response = await fetch(`${apiUrl}/api/models/${modelId}`, { credentials: 'include' });
+        if (!response.ok) throw new Error(`Failed to fetch model data: ${response.status}`);
+        const data = await response.json();
+        console.log('Model data:', data);
+        setModelData(data);
+        const url = `${apiUrl}/model/${data.mainModel}`;
+        const modelResponse = await fetch(url);
+        if (!modelResponse.ok) throw new Error(`Failed to fetch model: ${modelResponse.status}`);
+        const blob = await modelResponse.blob();
         const blobUrl = URL.createObjectURL(blob);
         setModelSrc(blobUrl);
         setError('');
@@ -38,22 +42,21 @@ export default function ModelPage({data}) {
         setError('Failed to load model. Please try again.');
       }
     };
-    fetchModel();
-  }, [apiUrl]);
+    fetchModelData();
+  }, [modelId, apiUrl]);
+
+  const parts = modelData?.parts ? Object.keys(modelData.parts).map(key => ({ key, ...modelData.parts[key] })) : [];
 
   const handlePartSelect = async (part) => {
-    const partFileId = data.parts[part].modelId;
+    const partFileId = part.model;
     const url = `${apiUrl}/model/${partFileId}`;
-    console.log('Fetching part model from:', url); // Debug log
     try {
       const response = await fetch(url, { credentials: 'include' });
-      if (!response.ok) {
-        throw new Error(`Failed to fetch part model: ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`Failed to fetch part model: ${response.status}`);
       const blob = await response.blob();
       const blobUrl = URL.createObjectURL(blob);
       setModelSrc(blobUrl);
-      setSelectedPart(part);
+      setSelectedPart(part.key);
       setShowDetailView(true);
       setIsDrawerOpen(false);
       setError('');
@@ -62,12 +65,13 @@ export default function ModelPage({data}) {
       setError('Failed to load part model.');
     }
   };
+  
+  const ms = modelData ? ((modelData.keyframes/2) * 1000) / modelData.framesPerSecond : 0;
 
   const handleToggleAnimation = () => {
     if (modelViewerRef && modelViewerRef.current) {
       const animations = modelViewerRef.current.availableAnimations;
       if (animations.length > 0) {
-        // Save the current camera orbit before playing animation
         const currentOrbit = modelViewerRef.current.getCameraOrbit();
         
         modelViewerRef.current.animationName = animations[0];
@@ -78,9 +82,8 @@ export default function ModelPage({data}) {
           modelViewerRef.current.pause();
           setIsPlaying(false);
           setIsDismantleMode(!isDismantleMode);
-          // Restore the camera orbit to its position before animation
           modelViewerRef.current.cameraOrbit = `${currentOrbit.theta}rad ${currentOrbit.phi}rad ${currentOrbit.radius}m`;
-        }, data.ms); // Your original fixed duration
+        }, ms);
       }
     }
   };
@@ -88,7 +91,7 @@ export default function ModelPage({data}) {
   const handleBackClick = async () => {
     setShowDetailView(false);
     setSelectedPart(null);
-    const url = `${apiUrl}/model/${data.fullviewModel}`;
+    const url = `${apiUrl}/model/${modelData.mainModel}`;
     try {
       const response = await fetch(url, { credentials: 'include' });
       if (!response.ok) throw new Error('Failed to fetch full model');
@@ -102,7 +105,6 @@ export default function ModelPage({data}) {
     }
   };
 
-  // Fullscreen control
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
       appRef.current.requestFullscreen();
@@ -113,18 +115,16 @@ export default function ModelPage({data}) {
     }
   };
 
-  // Screenshot control
   const takeScreenshot = () => {
     if (modelViewerRef && modelViewerRef.current) {
       const url = modelViewerRef.current.toDataURL();
       const link = document.createElement("a");
-      link.download = `${data.name || "bicycle"}-screenshot.png`;
+      link.download = `${modelData?.title || "model"}-screenshot.png`;
       link.href = url;
       link.click();
     }
   };
 
-  // Reset model view control
   const resetModelView = () => {
     if (modelViewerRef && modelViewerRef.current) {
       modelViewerRef.current.cameraOrbit = "auto auto auto";
@@ -132,7 +132,6 @@ export default function ModelPage({data}) {
     }
   };
 
-  // Zoom controls for model-viewer
   const zoomIn = () => {
     if (modelViewerRef && modelViewerRef.current) {
       const orbitValues = modelViewerRef.current.getCameraOrbit();
@@ -176,11 +175,11 @@ export default function ModelPage({data}) {
           <ul>
             {parts.map((part) => (
               <li
-                key={part}
+                key={part.key}
                 onClick={() => handlePartSelect(part)}
-                className={selectedPart === part ? styles.selected : ''}
+                className={selectedPart === part.key ? styles.selected : ''}
               >
-                {data.parts[part].name}
+                {part.title}
               </li>
             ))}
           </ul>
@@ -254,7 +253,7 @@ export default function ModelPage({data}) {
             )}
           </div>
           <div className={styles.descriptionContainer}>
-            <ModelDescription selectedPart={selectedPart} isDarkMode={isDarkMode} data={data} />
+            <ModelDescription selectedPart={selectedPart} isDarkMode={isDarkMode} data={modelData} />
           </div>
         </div>
       )}

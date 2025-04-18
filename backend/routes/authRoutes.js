@@ -49,7 +49,7 @@ router.get('/auth/google/callback',
     );
 
     // Redirect to dashboard with token in query string (or use a different method)
-    res.redirect(`${process.env.CLIENT_URL}/dashboard?token=${token}`);
+    res.redirect(`${process.env.CLIENT_URL}/learner?token=${token}`);
   }
 );
 

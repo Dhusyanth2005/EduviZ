@@ -15,7 +15,7 @@ function ModelDescription({ selectedPart, isDarkMode, data }) {
         try {
           await axios.post('http://localhost:8080/preload', {
             data: {
-              item: partInfo.name || 'Unknown Part',
+              item: partInfo.title || 'Unknown Part',
               details: partInfo.description || 'No description available.',
             },
           });
@@ -23,7 +23,7 @@ function ModelDescription({ selectedPart, isDarkMode, data }) {
             setChat([
               {
                 sender: 'bot',
-                text: `Hello! I'm EduViz AI, here to help you learn about ${partInfo.name}. Type 'start' to know more about this part, or ask me anything about the selected part!`,
+                text: `Hello! I'm EduViz AI, here to help you learn about ${partInfo.title}. Type 'start' to know more about this part, or ask me anything about the selected part!`,
               },
             ]);
           }
@@ -41,7 +41,7 @@ function ModelDescription({ selectedPart, isDarkMode, data }) {
       setChat([
         {
           sender: 'bot',
-          text: `Hello! I'm EduViz AI, here to help you learn about ${partInfo.name}. Type 'start' to know more about this part, or ask me anything about the selected part!`
+          text: `Hello! I'm EduViz AI, here to help you learn about ${partInfo.title}. Type 'start' to know more about this part, or ask me anything about the selected part!`
         },
       ]);
     }
@@ -61,7 +61,7 @@ function ModelDescription({ selectedPart, isDarkMode, data }) {
       const partInfo = data.parts[selectedPart] || {};
       setChat(prev => [...prev, { 
         sender: 'bot', 
-        text: `Hello! I'm EduViz AI, here to help you learn about ${partInfo.name || 'this part'}. Type 'start' to learn more, or ask me a specific question about it!` 
+        text: `Hello! I'm EduViz AI, here to help you learn about ${partInfo.title || 'this part'}. Type 'start' to learn more, or ask me a specific question about it!` 
       }]);
       setMessage('');
       return;
@@ -161,9 +161,9 @@ function ModelDescription({ selectedPart, isDarkMode, data }) {
             toggleChat={toggleChat}
             isDarkMode={isDarkMode}
           />
-        ) : (
+      ) : (
           <>
-            <h2>{partInfo.name || 'Unknown Part'}</h2>
+            <h2>{partInfo.title || 'Unknown Part'}</h2>
             <h3>Description:</h3>
             <ol>
               {descriptionLines.length > 0
