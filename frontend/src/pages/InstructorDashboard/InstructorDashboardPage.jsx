@@ -201,9 +201,10 @@ function CreateModelForm({ onModelCreated, onCancel }) {
             <select value={category} onChange={(e) => setCategory(e.target.value)} required>
               <option value="">Select Category</option>
               <option value="Biology">Biology</option>
-              <option value="Chemistry">Chemistry</option>
-              <option value="Physics">Physics</option>
-              <option value="Mathematics">Mathematics</option>
+              <option value="Mechanical">Mechanical</option>
+              <option value="Electronics">Electronics</option>
+              <option value="Architecture">Architecture</option>
+              <option value="Astronomy">Astronomy</option>
             </select>
           </div>
         </div>

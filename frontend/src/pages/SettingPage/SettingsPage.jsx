@@ -6,7 +6,7 @@ import axios from 'axios';
 const SettingsPage = () => {
   const [activeSection, setActiveSection] = useState('profile');
   const fileInputRef = useRef(null);
-  const [userData, setUserData] = useState({ fullName: 'Dhusyanth', email: 'dhusyanth@example.com', profilePicture: '' });
+  const [userData, setUserData] = useState({ fullName: '', email: '', profilePicture: '' });
   const navigate = useNavigate();
   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
@@ -28,10 +28,18 @@ const SettingsPage = () => {
             withCredentials: true,
           });
           const { fullName, email, profilePicture } = response.data;
-          setUserData({ fullName, email, profilePicture });
+          setUserData({ 
+            fullName: fullName || '', 
+            email: email || '', 
+            profilePicture: profilePicture || '' 
+          });
         } catch (error) {
           console.error('Error fetching user data:', error);
-          setUserData({ fullName: 'Dhusyanth', email: 'dhusyanth@example.com', profilePicture: '' });
+          setUserData({ 
+            fullName: '', 
+            email: '', 
+            profilePicture: '' 
+          });
         }
       }
     };
@@ -39,7 +47,7 @@ const SettingsPage = () => {
   }, [apiUrl]);
 
   const ProfileSettings = () => {
-    const [firstName, setFirstName] = useState(userData.fullName.split(' ')[0] || 'Dhusyanth');
+    const [firstName, setFirstName] = useState(userData.fullName.split(' ')[0] || '');
     const [lastName, setLastName] = useState(userData.fullName.split(' ')[1] || '');
     const [headline, setHeadline] = useState('');
     const [website, setWebsite] = useState('');
@@ -48,7 +56,11 @@ const SettingsPage = () => {
     const [linkedin, setLinkedin] = useState('');
     const [language, setLanguage] = useState('English (US)');
     const [profileImage, setProfileImage] = useState(userData.profilePicture);
-    const [previewImage, setPreviewImage] = useState(userData.profilePicture ? `${apiUrl}/model/${userData.profilePicture}` : null);
+    const [previewImage, setPreviewImage] = useState(
+      userData.profilePicture 
+        ? `${apiUrl}/uploads/profile-pictures/${userData.profilePicture}` 
+        : null
+    );
 
     const handleImageChange = async (e) => {
       if (e.target.files && e.target.files[0]) {
@@ -64,25 +76,41 @@ const SettingsPage = () => {
         formData.append('profileImage', file);
 
         const token = localStorage.getItem('token');
-        console.log('Sending request with token:', token);
         try {
           const response = await axios.post(`${apiUrl}/api/auth/upload-profile-image`, formData, {
             headers: { 
               Authorization: `Bearer ${token}`,
-              'Content-Type': 'multipart/form-data',
-              withCredentials: true,
+              'Content-Type': 'multipart/form-data'
             },
+            withCredentials: true
           });
-          console.log('Upload response:', response.data);
-          if (response.data.fileId) {
-            setUserData(prev => ({ ...prev, profilePicture: response.data.fileId }));
-            setProfileImage(response.data.fileId);
-            setPreviewImage(`${apiUrl}/model/${response.data.fileId}`);
-            await fetchUserData(); // Refresh user data
+
+          if (response.data.profilePicture) {
+            const newProfilePicture = response.data.profilePicture;
+            setUserData(prev => ({ ...prev, profilePicture: newProfilePicture }));
+            setProfileImage(newProfilePicture);
+            setPreviewImage(`${apiUrl}/uploads/profile-pictures/${newProfilePicture}`);
+            
+            // Update the user's profile picture in the database
+            await axios.put(`${apiUrl}/api/users/me`, 
+              { profilePicture: newProfilePicture },
+              {
+                headers: { 
+                  Authorization: `Bearer ${token}`,
+                  'Content-Type': 'application/json'
+                },
+                withCredentials: true
+              }
+            );
           }
         } catch (error) {
           console.error('Upload error:', error.response ? error.response.data : error.message);
-          alert('Failed to upload profile image');
+          alert('Failed to upload profile image. Please try again.');
+          // Reset preview image on error
+          setPreviewImage(userData.profilePicture 
+            ? `${apiUrl}/uploads/profile-pictures/${userData.profilePicture}` 
+            : null
+          );
         }
       }
     };
@@ -106,7 +134,7 @@ const SettingsPage = () => {
           });
           const { fullName, email, profilePicture } = response.data;
           setUserData({ fullName, email, profilePicture });
-          setPreviewImage(profilePicture ? `${apiUrl}/model/${profilePicture}` : null);
+          setPreviewImage(profilePicture ? `${apiUrl}/uploads/profile-pictures/${profilePicture}` : null);
         } catch (error) {
           console.error('Error fetching user data:', error);
         }
@@ -163,7 +191,7 @@ const SettingsPage = () => {
                 type="text" 
                 value={headline}
                 onChange={(e) => setHeadline(e.target.value)}
-                placeholder="Headline (e.g., Student at Eduviz)"
+                placeholder="Headline"
                 className={styles.settingsInput}
                 maxLength={60}
               />
@@ -294,7 +322,93 @@ const SettingsPage = () => {
   };
 
   const ViewProfile = () => {
-    const profileImageUrl = userData.profilePicture ? `${apiUrl}/model/${userData.profilePicture}` : null;
+    const profileImageUrl = userData.profilePicture ? `${apiUrl}/uploads/profile-pictures/${userData.profilePicture}` : null;
+    const [currentLocation, setCurrentLocation] = useState('Detecting location...');
+    const [currentDate, setCurrentDate] = useState('');
+
+    useEffect(() => {
+      // Get current date
+      const date = new Date();
+      const formattedDate = date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      setCurrentDate(formattedDate);
+
+      // Get exact current location
+      const getExactLocation = () => {
+        if (navigator.geolocation) {
+          const options = {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+          };
+
+          navigator.geolocation.getCurrentPosition(
+            async (position) => {
+              try {
+                const { latitude, longitude } = position.coords;
+                
+                // First try with Google Maps Geocoding API
+                const response = await fetch(
+                  `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=YOUR_GOOGLE_MAPS_API_KEY`
+                );
+                
+                if (!response.ok) {
+                  throw new Error('Geocoding service failed');
+                }
+
+                const data = await response.json();
+                
+                if (data.results && data.results.length > 0) {
+                  const address = data.results[0].formatted_address;
+                  setCurrentLocation(address);
+                } else {
+                  // Fallback to OpenStreetMap if Google fails
+                  const osmResponse = await fetch(
+                    `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`
+                  );
+                  const osmData = await osmResponse.json();
+                  
+                  if (osmData.address) {
+                    const { city, town, village, county, state, country } = osmData.address;
+                    const location = city || town || village || county || state || country || 'Unknown Location';
+                    setCurrentLocation(location);
+                  } else {
+                    setCurrentLocation(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+                  }
+                }
+              } catch (error) {
+                console.error('Error getting location:', error);
+                setCurrentLocation('Location service unavailable');
+              }
+            },
+            (error) => {
+              console.error('Geolocation error:', error);
+              switch (error.code) {
+                case error.PERMISSION_DENIED:
+                  setCurrentLocation('Location access denied');
+                  break;
+                case error.POSITION_UNAVAILABLE:
+                  setCurrentLocation('Location information unavailable');
+                  break;
+                case error.TIMEOUT:
+                  setCurrentLocation('Location request timed out');
+                  break;
+                default:
+                  setCurrentLocation('Error getting location');
+              }
+            },
+            options
+          );
+        } else {
+          setCurrentLocation('Geolocation not supported');
+        }
+      };
+
+      getExactLocation();
+    }, []);
 
     return (
       <div className={styles.settingsContent}>
@@ -304,15 +418,15 @@ const SettingsPage = () => {
             {profileImageUrl ? (
               <img src={profileImageUrl} alt="Profile" className={styles.avatarImage} />
             ) : (
-              userData.fullName[0] || 'D'
+              userData.fullName[0] || ''
             )}
           </div>
           <h2>{userData.fullName}</h2>
           <p>Web Developer</p>
           <div className={styles.profileDetails}>
             <p>Email: {userData.email}</p>
-            <p>Location: New York, USA</p>
-            <p>Member Since: January 2024</p>
+            <p>Location: {currentLocation}</p>
+            <p>Member Since: {currentDate}</p>
           </div>
         </div>
       </div>
@@ -345,7 +459,7 @@ const SettingsPage = () => {
     <div className={styles.settingsPageContainer}>
       <div className={styles.settingsSidebar}>
         <div className={styles.stackedProfileHeader}>
-          <div className={styles.stackedProfileAvatar}>{userData.fullName[0] || 'D'}</div>
+          <div className={styles.stackedProfileAvatar}>{userData.fullName[0] || ''}</div>
           <div className={styles.stackedProfileInfo}>
             <span className={styles.stackedProfileName}>{userData.fullName}</span>
             <span className={styles.stackedProfileEmail}>{userData.email}</span>

@@ -296,16 +296,16 @@ const Footer = () => {
               <Link to="/">{t.home}</Link>
             </li>
             <li>
-              <Link to="/explore">{t.exploreModels}</Link>
+              <Link to="/">{t.exploreModels}</Link>
             </li>
             <li>
-              <Link to="/how-it-works">{t.howItWorks}</Link>
+              <Link to="/">{t.howItWorks}</Link>
             </li>
             <li>
-              <Link to="/pricing">{t.pricing}</Link>
+              <Link to="/">{t.pricing}</Link>
             </li>
             <li>
-              <Link to="/contact">{t.contactUs}</Link>
+              <Link to="/">{t.contactUs}</Link>
             </li>
           </ul>
         </div>
@@ -320,13 +320,13 @@ const Footer = () => {
               <Link to="/signup?role=creator">{t.becomeCreator}</Link>
             </li>
             <li>
-              <Link to="/creator-guidelines">{t.creatorGuidelines}</Link>
+              <Link to="/">{t.creatorGuidelines}</Link>
             </li>
             <li>
-              <Link to="/creator-faq">{t.creatorFAQ}</Link>
+              <Link to="/">{t.creatorFAQ}</Link>
             </li>
             <li>
-              <Link to="/resources">{t.resources}</Link>
+              <Link to="/">{t.resources}</Link>
             </li>
           </ul>
         </div>

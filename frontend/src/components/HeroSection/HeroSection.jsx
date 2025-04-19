@@ -316,10 +316,10 @@ const HeroSection = () => {
             </div>
           </div>
           <div className={styles.heroCta}>
-            <Link to="/explore">
+            <Link to="/">
               <button className={styles.ctaButton}>{t('exploreButton')}</button>
             </Link>
-            <Link to="/signup?role=creator">
+            <Link to="/signup">
               <button className={`${styles.ctaButton} ${styles.primary}`}>
                 {t('creatorButton')}
               </button>

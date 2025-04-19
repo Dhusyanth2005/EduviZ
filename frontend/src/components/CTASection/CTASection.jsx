@@ -100,7 +100,7 @@ const CTASection = () => {
         <p className={styles.ctaText}>{t('subtitle')}</p>
         <div className={styles.ctaButtons}>
           <Link to="/signup" className={styles.btnPrimary}>{t('ctaButton')}</Link>
-          <Link to="/creators" className={styles.btnSecondary}>{t('learnButton')}</Link>
+          <Link to="/signup" className={styles.btnSecondary}>{t('learnButton')}</Link>
         </div>
       </div>
     </section>

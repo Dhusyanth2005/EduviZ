@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { FaGlobe } from 'react-icons/fa';
+import axios from 'axios';
 import styles from './Header.module.css';
 
 const Header = () => {
@@ -11,68 +12,75 @@ const Header = () => {
     return savedLanguage || 'en';
   });
   const [showLanguageModal, setShowLanguageModal] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const languageButtonRef = useRef(null);
   const modalRef = useRef(null);
+  const navigate = useNavigate();
 
   const languages = [
     { code: 'en', name: 'English' },
     { code: 'ta', name: 'தமிழ்' },
     { code: 'hi', name: 'हिंदी' },
     { code: 'de', name: 'Deutsch' },
-    { code: 'ja', name: '日本語' }
+    { code: 'ja', name: '日本語' },
   ];
 
   const translations = {
     en: {
-      home: "Home",
-      features: "Features",
-      categories: "Categories",
-      howItWorks: "How It Works",
-      models: "Models",
-      login: "Login",
-      signUp: "Sign Up",
-      selectLanguage: "Select language"
+      home: 'Home',
+      features: 'Features',
+      categories: 'Categories',
+      howItWorks: 'How It Works',
+      models: 'Models',
+      login: 'Login',
+      signUp: 'Sign Up',
+      selectLanguage: 'Select language',
+      logout: 'Logout',
     },
     ta: {
-      home: "முகப்பு",
-      features: "அம்சங்கள்",
-      categories: "வகைகள்",
-      howItWorks: "எப்படி வேலை செய்கிறது",
-      models: "மாதிரிகள்",
-      login: "உள்நுழை",
-      signUp: "பதிவு செய்க",
-      selectLanguage: "மொழியை தேர்ந்தெடுக்கவும்"
+      home: 'முகப்பு',
+      features: 'அம்சங்கள்',
+      categories: 'வகைகள்',
+      howItWorks: 'எப்படி வேலை செய்கிறது',
+      models: 'மாதிரிகள்',
+      login: 'உள்நுழை',
+      signUp: 'பதிவு செய்க',
+      selectLanguage: 'மொழியை தேர்ந்தெடுக்கவும்',
+      logout: 'வெளியேறு',
     },
     hi: {
-      home: "होम",
-      features: "विशेषताएं",
-      categories: "श्रेणियां",
-      howItWorks: "यह कैसे काम करता है",
-      models: "मॉडल",
-      login: "लॉग इन",
-      signUp: "साइन अप",
-      selectLanguage: "भाषा चुनें"
+      home: 'होम',
+      features: 'विशेषताएं',
+      categories: 'श्रेणियां',
+      howItWorks: 'यह कैसे काम करता है',
+      models: 'मॉडल',
+      login: 'लॉग इन',
+      signUp: 'साइन अप',
+      selectLanguage: 'भाषा चुनें',
+      logout: 'लॉग आउट',
     },
     de: {
-      home: "Startseite",
-      features: "Funktionen",
-      categories: "Kategorien",
+      home: 'Startseite',
+      features: 'Funktionen',
+      categories: 'Kategorien',
       howItWorks: "So funktioniert's",
-      models: "Modelle",
-      login: "Anmelden",
-      signUp: "Registrieren",
-      selectLanguage: "Sprache auswählen"
+      models: 'Modelle',
+      login: 'Anmelden',
+      signUp: 'Registrieren',
+      selectLanguage: 'Sprache auswählen',
+      logout: 'Abmelden',
     },
     ja: {
-      home: "ホーム",
-      features: "機能",
-      categories: "カテゴリー",
-      howItWorks: "使い方",
-      models: "モデル",
-      login: "ログイン",
-      signUp: "サインアップ",
-      selectLanguage: "言語を選択"
-    }
+      home: 'ホーム',
+      features: '機能',
+      categories: 'カテゴリー',
+      howItWorks: '使い方',
+      models: 'モデル',
+      login: 'ログイン',
+      signUp: 'サインアップ',
+      selectLanguage: '言語を選択',
+      logout: 'ログアウト',
+    },
   };
 
   useEffect(() => {
@@ -84,19 +92,47 @@ const Header = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setIsAuthenticated(false);
+        return;
+      }
+
+      try {
+        await axios.get('http://localhost:8080/api/users/me', {
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
+        });
+        setIsAuthenticated(true);
+      } catch (error) {
+        console.error('Error verifying authentication:', error);
+        localStorage.removeItem('token');
+        setIsAuthenticated(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setIsAuthenticated(false);
+    navigate('/');
+  };
+
   const scrollToSection = (sectionId) => {
     const element = document.getElementById(sectionId);
     if (element) {
       const headerHeight = document.querySelector(`.${styles.header}`)?.offsetHeight || 0;
       const offsetPosition = element.offsetTop - headerHeight;
-      
-      // First try smooth scroll
+
       window.scrollTo({
         top: offsetPosition,
-        behavior: 'smooth'
+        behavior: 'smooth',
       });
 
-      // Fallback to scrollIntoView if smooth scroll fails
       setTimeout(() => {
         if (window.scrollY !== offsetPosition) {
           element.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -118,9 +154,9 @@ const Header = () => {
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
-        languageButtonRef.current && 
+        languageButtonRef.current &&
         modalRef.current &&
-        !languageButtonRef.current.contains(event.target) && 
+        !languageButtonRef.current.contains(event.target) &&
         !modalRef.current.contains(event.target)
       ) {
         setShowLanguageModal(false);
@@ -163,11 +199,21 @@ const Header = () => {
           EduViz
         </Link>
         <div className={styles.navLinks}>
-          <button onClick={() => scrollToSection('hero-section')} className={styles.navLink}>{t('home')}</button>
-          <button onClick={() => scrollToSection('features-section')} className={styles.navLink}>{t('features')}</button>
-          <button onClick={() => scrollToSection('categories-section')} className={styles.navLink}>{t('categories')}</button>
-          <button onClick={() => scrollToSection('how-it-works-section')} className={styles.navLink}>{t('howItWorks')}</button>
-          <button onClick={() => scrollToSection('featured-models-section')} className={styles.navLink}>{t('models')}</button>
+          <button onClick={() => scrollToSection('hero-section')} className={styles.navLink}>
+            {t('home')}
+          </button>
+          <button onClick={() => scrollToSection('features-section')} className={styles.navLink}>
+            {t('features')}
+          </button>
+          <button onClick={() => scrollToSection('categories-section')} className={styles.navLink}>
+            {t('categories')}
+          </button>
+          <button onClick={() => scrollToSection('how-it-works-section')} className={styles.navLink}>
+            {t('howItWorks')}
+          </button>
+          <button onClick={() => scrollToSection('featured-models-section')} className={styles.navLink}>
+            {t('models')}
+          </button>
         </div>
         <div className={styles.rightSection}>
           <div className={styles.languageSelector}>
@@ -181,9 +227,7 @@ const Header = () => {
             </button>
             {showLanguageModal && (
               <div ref={modalRef} className={styles.languageModal}>
-                <div className={styles.modalHeader}>
-                  {t('selectLanguage')}
-                </div>
+                <div className={styles.modalHeader}>{t('selectLanguage')}</div>
                 <div className={styles.languageList}>
                   {languages.map((lang) => (
                     <button
@@ -201,12 +245,22 @@ const Header = () => {
             )}
           </div>
           <div className={styles.authButtons}>
-            <Link to="/login">
-              <button className={styles.button}>{t('login')}</button>
-            </Link>
-            <Link to="/signup">
-              <button className={`${styles.button} ${styles.primary}`}>{t('signUp')}</button>
-            </Link>
+            {isAuthenticated ? (
+              <button className={styles.button} onClick={handleLogout}>
+                {t('logout')}
+              </button>
+            ) : (
+              <>
+                <Link to="/login">
+                  <button className={styles.button}>{t('login')}</button>
+                </Link>
+                <Link to="/signup">
+                  <button className={`${styles.button} ${styles.primary}`}>
+                    {t('signUp')}
+                  </button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </nav>

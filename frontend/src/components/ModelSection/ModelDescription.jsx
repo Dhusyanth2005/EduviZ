@@ -145,6 +145,7 @@ function ModelDescription({ selectedPart, isDarkMode, data }) {
   }
 
   const partInfo = data.parts[selectedPart] || {};
+  console.log('Part Info:', partInfo); // Debugging line
   const descriptionLines = partInfo.description
     ? partInfo.description.split('. ').map((line) => line.trim() + '.') // Split into sentences
     : [];
@@ -161,7 +162,7 @@ function ModelDescription({ selectedPart, isDarkMode, data }) {
             toggleChat={toggleChat}
             isDarkMode={isDarkMode}
           />
-      ) : (
+        ) : (
           <>
             <h2>{partInfo.title || 'Unknown Part'}</h2>
             <h3>Description:</h3>
@@ -174,7 +175,7 @@ function ModelDescription({ selectedPart, isDarkMode, data }) {
             </ol>
             <h3>Usage:</h3>
             <p>
-              {partInfo.usage || 'No usage information available.'}
+              {partInfo.uses || 'No usage information available.'}
             </p>
             <button className={styles.chatButton} onClick={toggleChat}>
               💬

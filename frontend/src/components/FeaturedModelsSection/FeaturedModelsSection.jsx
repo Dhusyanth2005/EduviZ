@@ -337,7 +337,7 @@ const FeaturedModelsSection = () => {
           ))}
         </div>
         <div className={styles.modelsCta}>
-          <Link to="/models" className={styles.btnPrimary}>
+          <Link to="/signup" className={styles.btnPrimary}>
             {t('exploreAll')}
           </Link>
         </div>

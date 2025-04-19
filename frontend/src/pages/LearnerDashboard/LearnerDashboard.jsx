@@ -521,7 +521,7 @@ function LearnerDashboard() {
   const MarketplacePage = () => (
     <div className={styles.marketplacePage}>
       <div className={styles.categoryFilter}>
-        {["All", "Biology", "Physics", "Chemistry", "Astronomy", "Computer Science"].map(
+        {["All", "Biology", "Mechanical", "Electronics", "Architecture", "Astronomy"].map(
           (category) => (
             <button
               key={category}
