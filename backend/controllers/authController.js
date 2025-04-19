@@ -388,7 +388,7 @@ const removeWishlist = async (req, res) => {
 };
 const getUserData = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select('enrolledCourses wishlist role fullName email preferredLanguage');
+    const user = await User.findById(req.user.id).select('enrolledCourses wishlist role fullName email preferredLanguage profilePicture');
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
@@ -398,4 +398,66 @@ const getUserData = async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch user data' });
   }
 };
-module.exports = { logout, authStatus, getUser, sendOTP, verifyOTP, signup, login, selectRole, updateCreatedCourses , updateEnrolledCourses, updateWishlist , getUserData , removeWishlist };
+
+const uploadProfilePicture = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    const userId = req.user.id;
+    const user = await User.findById(userId);
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Update user's profile picture
+    user.profilePicture = req.file.filename;
+    await user.save();
+
+    res.json({ 
+      message: 'Profile picture uploaded successfully',
+      profilePicture: req.file.filename
+    });
+  } catch (error) {
+    console.error('Profile picture upload error:', error);
+    res.status(500).json({ error: 'Failed to upload profile picture' });
+  }
+};
+
+const updateUserProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { profilePicture, fullName, email, preferredLanguage } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Update only the provided fields
+    if (profilePicture !== undefined) user.profilePicture = profilePicture;
+    if (fullName !== undefined) user.fullName = fullName;
+    if (email !== undefined) user.email = email;
+    if (preferredLanguage !== undefined) user.preferredLanguage = preferredLanguage;
+
+    await user.save();
+
+    res.json({
+      message: 'Profile updated successfully',
+      user: {
+        id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        profilePicture: user.profilePicture,
+        preferredLanguage: user.preferredLanguage
+      }
+    });
+  } catch (error) {
+    console.error('Error updating user profile:', error);
+    res.status(500).json({ error: 'Failed to update profile' });
+  }
+};
+
+module.exports = { logout, authStatus, getUser, sendOTP, verifyOTP, signup, login, selectRole, updateCreatedCourses, updateEnrolledCourses, updateWishlist, removeWishlist, getUserData, uploadProfilePicture, updateUserProfile };

@@ -12,9 +12,45 @@ const { logout,
    updateEnrolledCourses,
    updateWishlist,
    getUserData,
-  removeWishlist} = require('../controllers/authController');
+   removeWishlist,
+   uploadProfilePicture,
+   updateUserProfile } = require('../controllers/authController');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+// Serve static files from uploads directory
+router.use('/uploads/profile-pictures', express.static(path.join(__dirname, '../uploads/profile-pictures')));
+
+// Configure multer for profile picture uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadDir = path.join(__dirname, '../uploads/profile-pictures');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ 
+  storage: storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  },
+  fileFilter: function (req, file, cb) {
+    if (!file.mimetype.startsWith('image/')) {
+      return cb(new Error('Only image files are allowed!'), false);
+    }
+    cb(null, true);
+  }
+});
 
 // Middleware to verify JWT
 const authenticateJWT = (req, res, next) => {
@@ -65,5 +101,7 @@ router.post('/api/users/update-created-courses', authenticateJWT, updateCreatedC
 router.post('/api/users/enroll', authenticateJWT, updateEnrolledCourses);
 router.post('/api/users/wishlist', authenticateJWT, updateWishlist);
 router.get('/api/users/me', authenticateJWT, getUserData);
-router.put('/api/users/wishlist/remove/:modelId',authenticateJWT, removeWishlist);
+router.put('/api/users/me', authenticateJWT, updateUserProfile);
+router.put('/api/users/wishlist/remove/:modelId', authenticateJWT, removeWishlist);
+router.post('/api/auth/upload-profile-image', authenticateJWT, upload.single('profileImage'), uploadProfilePicture);
 module.exports = router;

@@ -109,13 +109,13 @@ router.get('/:courseId', async (req, res) => {
 // Save a new message
 router.post('/:courseId?', async (req, res) => {
   try {
-    const { sender, text, image } = req.body;
+    const { sender, text, image, userId } = req.body;
     const courseId = req.params.courseId || 'direct-messaging';
     
     const message = new Message({
-      id: new mongoose.Types.ObjectId().toString(), // Generate a unique ID
       courseId,
       sender,
+      userId,
       text,
       image,
       timestamp: new Date()

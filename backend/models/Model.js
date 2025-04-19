@@ -37,7 +37,7 @@ const ModelSchema = new Schema({
   },
   category: {
     type: String,
-    enum: ['Biology', 'Chemistry', 'Physics', 'Mathematics', ''],
+    enum: ['Biology', 'Mechanical', 'Electronics', 'Architecture', 'Astronomy'],
     required: true,
   },
   mainModel: {
